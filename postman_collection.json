@@ -1,0 +1,972 @@
+{
+  "info": {
+    "name": "Office Management API (v1)",
+    "description": "Office Management API. Variables: baseUrl, token (after login), bootstrapKey, staffId, userId, teamId, profileChangeRequestId, stockItemId, maintenanceId, workId.",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "item": [
+    {
+      "name": "Health",
+      "item": [
+        {
+          "name": "API Health",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/health",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "v1", "health"]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Auth",
+      "item": [
+        {
+          "name": "Bootstrap Super Admin",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"admin@example.com\",\n  \"fullName\": \"Super Admin\",\n  \"password\": \"ChangeThisPassword123\",\n  \"bootstrapKey\": \"{{bootstrapKey}}\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/auth/bootstrap-super-admin",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "v1", "auth", "bootstrap-super-admin"]
+            }
+          }
+        },
+        {
+          "name": "Register Staff (self, full profile + base64)",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"staff1@example.com\",\n  \"fullName\": \"Staff One\",\n  \"phone\": \"+91 9999999999\",\n  \"password\": \"MyOwnPassword123\",\n  \"aadharNumberLast4\": \"1234\",\n  \"additionalDetails\": {\n    \"address\": \"12 MG Road, Indore\",\n    \"emergencyContactName\": \"Sita Kumar\",\n    \"emergencyContactPhone\": \"+91 9000000000\"\n  },\n  \"professional\": {\n    \"qualification\": \"B.Com\",\n    \"experienceSummary\": \"2 yrs F&B service\"\n  },\n  \"livePhoto\": \"data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR4nGNgAAIAAAUAAeImBZsAAAAASUVORK5CYII=\",\n  \"certificates\": [\n    { \"name\": \"10th marksheet\", \"image\": \"data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR4nGNgAAIAAAUAAeImBZsAAAAASUVORK5CYII=\" }\n  ]\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/auth/register/staff",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "v1", "auth", "register", "staff"]
+            }
+          }
+        },
+        {
+          "name": "Register Trainee (self, full profile + base64)",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"trainee1@example.com\",\n  \"fullName\": \"Trainee One\",\n  \"phone\": \"+91 8888888888\",\n  \"password\": \"MyOwnPassword123\",\n  \"aadharNumberLast4\": \"5678\",\n  \"additionalDetails\": {\n    \"address\": \"Vijay Nagar, Indore\"\n  },\n  \"professional\": {\n    \"qualification\": \"12th\",\n    \"experienceSummary\": \"Fresher\"\n  },\n  \"livePhoto\": \"data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR4nGNgAAIAAAUAAeImBZsAAAAASUVORK5CYII=\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/auth/register/trainee",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "v1", "auth", "register", "trainee"]
+            }
+          }
+        },
+        {
+          "name": "Login",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"admin@example.com\",\n  \"password\": \"ChangeThisPassword123\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/auth/login",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "v1", "auth", "login"]
+            }
+          }
+        },
+        {
+          "name": "Change Password",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" },
+              { "key": "Authorization", "value": "Bearer {{token}}" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"oldPassword\": \"ChangeThisPassword123\",\n  \"newPassword\": \"ChangeThisPassword456\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/auth/change-password",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "v1", "auth", "change-password"]
+            }
+          }
+        },
+        {
+          "name": "Me",
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Authorization", "value": "Bearer {{token}}" }],
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/me",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "v1", "me"]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Users (admin-creates: HR / MGR / TL / etc.)",
+      "item": [
+        {
+          "name": "Get Creatable Roles (for current user)",
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Authorization", "value": "Bearer {{token}}" }],
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/users/creatable-roles",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "v1", "users", "creatable-roles"]
+            }
+          }
+        },
+        {
+          "name": "Create User (HR example)",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" },
+              { "key": "Authorization", "value": "Bearer {{token}}" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"hr1@firm.com\",\n  \"fullName\": \"Anita Sharma\",\n  \"phone\": \"+91 9000011111\",\n  \"password\": \"ChosenByAdmin123\",\n  \"role\": \"HR\",\n  \"teamId\": \"{{teamId}}\",\n  \"aadharNumberLast4\": \"1122\",\n  \"additionalDetails\": {\n    \"address\": \"Office HQ\",\n    \"emergencyContactName\": \"Spouse\",\n    \"emergencyContactPhone\": \"+91 9000022222\"\n  },\n  \"professional\": { \"qualification\": \"MBA-HR\", \"experienceSummary\": \"5 yrs\" },\n  \"livePhoto\": \"data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR4nGNgAAIAAAUAAeImBZsAAAAASUVORK5CYII=\",\n  \"certificates\": [\n    { \"name\": \"MBA Degree\", \"image\": \"data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR4nGNgAAIAAAUAAeImBZsAAAAASUVORK5CYII=\" }\n  ]\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/users",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "v1", "users"]
+            }
+          }
+        },
+        {
+          "name": "Create User (Manager example)",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" },
+              { "key": "Authorization", "value": "Bearer {{token}}" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"mgr1@firm.com\",\n  \"fullName\": \"Rohan Manager\",\n  \"password\": \"ChosenByAdmin123\",\n  \"role\": \"MANAGER\",\n  \"teamId\": \"{{teamId}}\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/users",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "v1", "users"]
+            }
+          }
+        },
+        {
+          "name": "Create User (Team Lead example)",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" },
+              { "key": "Authorization", "value": "Bearer {{token}}" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"tl1@firm.com\",\n  \"fullName\": \"Priya TL\",\n  \"password\": \"ChosenByAdmin123\",\n  \"role\": \"TL\",\n  \"teamId\": \"{{teamId}}\",\n  \"reportsToUserId\": \"{{userId}}\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/users",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "v1", "users"]
+            }
+          }
+        },
+        {
+          "name": "Create User (Cashier example)",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" },
+              { "key": "Authorization", "value": "Bearer {{token}}" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"cashier1@firm.com\",\n  \"fullName\": \"Cashier One\",\n  \"password\": \"ChosenByAdmin123\",\n  \"role\": \"CASHIER\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/users",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "v1", "users"]
+            }
+          }
+        },
+        {
+          "name": "Create User (Captain example)",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" },
+              { "key": "Authorization", "value": "Bearer {{token}}" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"captain1@firm.com\",\n  \"fullName\": \"Captain One\",\n  \"password\": \"ChosenByAdmin123\",\n  \"role\": \"CAPTAIN\",\n  \"teamId\": \"{{teamId}}\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/users",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "v1", "users"]
+            }
+          }
+        },
+        {
+          "name": "Create User (Accountant example)",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" },
+              { "key": "Authorization", "value": "Bearer {{token}}" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"accountant1@firm.com\",\n  \"fullName\": \"Accountant One\",\n  \"password\": \"ChosenByAdmin123\",\n  \"role\": \"ACCOUNTANT\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/users",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "v1", "users"]
+            }
+          }
+        },
+        {
+          "name": "Create User (Admin example) — only SUPER_ADMIN",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" },
+              { "key": "Authorization", "value": "Bearer {{token}}" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"admin2@firm.com\",\n  \"fullName\": \"Second Admin\",\n  \"password\": \"ChosenBySuperAdmin123\",\n  \"role\": \"ADMIN\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/users",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "v1", "users"]
+            }
+          }
+        },
+        {
+          "name": "List Users",
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Authorization", "value": "Bearer {{token}}" }],
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/users?role=MANAGER&status=ACTIVE",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "v1", "users"],
+              "query": [
+                { "key": "role", "value": "MANAGER" },
+                { "key": "status", "value": "ACTIVE" },
+                { "key": "teamId", "value": "{{teamId}}", "disabled": true }
+              ]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Teams",
+      "item": [
+        {
+          "name": "Create Team",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" },
+              { "key": "Authorization", "value": "Bearer {{token}}" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Front Office\",\n  \"description\": \"Reception and front desk team\",\n  \"managerUserId\": \"{{userId}}\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/teams",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "v1", "teams"]
+            }
+          }
+        },
+        {
+          "name": "List Teams",
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Authorization", "value": "Bearer {{token}}" }],
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/teams",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "v1", "teams"]
+            }
+          }
+        },
+        {
+          "name": "Get Team",
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Authorization", "value": "Bearer {{token}}" }],
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/teams/{{teamId}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "v1", "teams", "{{teamId}}"]
+            }
+          }
+        },
+        {
+          "name": "Update Team",
+          "request": {
+            "method": "PUT",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" },
+              { "key": "Authorization", "value": "Bearer {{token}}" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"description\": \"Updated description\",\n  \"leadUserId\": \"{{userId}}\",\n  \"isActive\": true\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/teams/{{teamId}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "v1", "teams", "{{teamId}}"]
+            }
+          }
+        },
+        {
+          "name": "Assign User to Team",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" },
+              { "key": "Authorization", "value": "Bearer {{token}}" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"userId\": \"{{staffId}}\",\n  \"teamId\": \"{{teamId}}\",\n  \"reportsToUserId\": \"{{userId}}\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/teams/assign-user",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "v1", "teams", "assign-user"]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Staff Approval",
+      "item": [
+        {
+          "name": "List Staff (filter by status / role)",
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Authorization", "value": "Bearer {{token}}" }],
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/staff?status=PENDING_APPROVAL",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "v1", "staff"],
+              "query": [
+                { "key": "status", "value": "PENDING_APPROVAL" },
+                { "key": "role", "value": "STAFF", "disabled": true }
+              ]
+            }
+          }
+        },
+        {
+          "name": "Review Staff — APPROVE",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" },
+              { "key": "Authorization", "value": "Bearer {{token}}" }
+            ],
+            "body": { "mode": "raw", "raw": "{\n  \"status\": \"APPROVED\"\n}" },
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/staff/{{staffId}}/review",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "v1", "staff", "{{staffId}}", "review"]
+            }
+          }
+        },
+        {
+          "name": "Review Staff — REJECT",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" },
+              { "key": "Authorization", "value": "Bearer {{token}}" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"status\": \"REJECTED\",\n  \"reason\": \"Incomplete documents\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/staff/{{staffId}}/review",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "v1", "staff", "{{staffId}}", "review"]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Staff Profiles",
+      "item": [
+        {
+          "name": "Get Staff Profile",
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Authorization", "value": "Bearer {{token}}" }],
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/staff/{{staffId}}/profile",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "v1", "staff", "{{staffId}}", "profile"]
+            }
+          }
+        },
+        {
+          "name": "Request Profile Update",
+          "request": {
+            "method": "PUT",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" },
+              { "key": "Authorization", "value": "Bearer {{token}}" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"additionalDetails\": {\n    \"address\": \"123 Street, City\",\n    \"emergencyContactName\": \"John\",\n    \"emergencyContactPhone\": \"7777777777\"\n  },\n  \"professional\": {\n    \"qualification\": \"BCA\",\n    \"experienceSummary\": \"2 years\"\n  },\n  \"aadharNumberLast4\": \"1234\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/staff/{{staffId}}/profile",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "v1", "staff", "{{staffId}}", "profile"]
+            }
+          }
+        },
+        {
+          "name": "Upload Live Photo (multipart)",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Authorization", "value": "Bearer {{token}}" }],
+            "body": {
+              "mode": "formdata",
+              "formdata": [{ "key": "photo", "type": "file", "src": "" }]
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/staff/{{staffId}}/photo",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "v1", "staff", "{{staffId}}", "photo"]
+            }
+          }
+        },
+        {
+          "name": "Upload Live Photo (base64 JSON)",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" },
+              { "key": "Authorization", "value": "Bearer {{token}}" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"image\": \"data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR4nGNgAAIAAAUAAeImBZsAAAAASUVORK5CYII=\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/staff/{{staffId}}/photo/base64",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "v1", "staff", "{{staffId}}", "photo", "base64"]
+            }
+          }
+        },
+        {
+          "name": "Upload Certificate (multipart)",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Authorization", "value": "Bearer {{token}}" }],
+            "body": {
+              "mode": "formdata",
+              "formdata": [
+                { "key": "name", "value": "Experience Certificate", "type": "text" },
+                { "key": "document", "type": "file", "src": "" }
+              ]
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/staff/{{staffId}}/documents",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "v1", "staff", "{{staffId}}", "documents"]
+            }
+          }
+        },
+        {
+          "name": "Upload Certificate (base64 JSON)",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" },
+              { "key": "Authorization", "value": "Bearer {{token}}" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Experience Certificate\",\n  \"image\": \"data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR4nGNgAAIAAAUAAeImBZsAAAAASUVORK5CYII=\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/staff/{{staffId}}/documents/base64",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "v1", "staff", "{{staffId}}", "documents", "base64"]
+            }
+          }
+        },
+        {
+          "name": "List Profile Change Requests (HR/ADMIN/SUPER)",
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Authorization", "value": "Bearer {{token}}" }],
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/profile-change-requests?status=PENDING",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "v1", "profile-change-requests"],
+              "query": [{ "key": "status", "value": "PENDING" }]
+            }
+          }
+        },
+        {
+          "name": "Review Profile Change Request",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" },
+              { "key": "Authorization", "value": "Bearer {{token}}" }
+            ],
+            "body": { "mode": "raw", "raw": "{\n  \"approved\": true\n}" },
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/profile-change-requests/{{profileChangeRequestId}}/review",
+              "host": ["{{baseUrl}}"],
+              "path": [
+                "api",
+                "v1",
+                "profile-change-requests",
+                "{{profileChangeRequestId}}",
+                "review"
+              ]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Stock / Utensils",
+      "item": [
+        {
+          "name": "Create Stock Item (with images base64)",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" },
+              { "key": "Authorization", "value": "Bearer {{token}}" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Printer Paper\",\n  \"category\": \"Stationery\",\n  \"unit\": \"pcs\",\n  \"images\": [\n    \"data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR4nGNgAAIAAAUAAeImBZsAAAAASUVORK5CYII=\"\n  ]\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/stock/items",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "v1", "stock", "items"]
+            }
+          }
+        },
+        {
+          "name": "List Stock Items",
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Authorization", "value": "Bearer {{token}}" }],
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/stock/items",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "v1", "stock", "items"]
+            }
+          }
+        },
+        {
+          "name": "Update Stock Item (append images)",
+          "request": {
+            "method": "PUT",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" },
+              { "key": "Authorization", "value": "Bearer {{token}}" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"unit\": \"ream\",\n  \"images\": [\n    {\n      \"data\": \"iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR4nGNgAAIAAAUAAeImBZsAAAAASUVORK5CYII=\",\n      \"mimeType\": \"image/png\",\n      \"originalName\": \"label.png\"\n    }\n  ]\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/stock/items/{{stockItemId}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "v1", "stock", "items", "{{stockItemId}}"]
+            }
+          }
+        },
+        {
+          "name": "Delete Stock Item (soft)",
+          "request": {
+            "method": "DELETE",
+            "header": [{ "key": "Authorization", "value": "Bearer {{token}}" }],
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/stock/items/{{stockItemId}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "v1", "stock", "items", "{{stockItemId}}"]
+            }
+          }
+        },
+        {
+          "name": "Add Stock Movement IN (with verification images)",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" },
+              { "key": "Authorization", "value": "Bearer {{token}}" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"itemId\": \"{{stockItemId}}\",\n  \"quantity\": 10,\n  \"note\": \"Purchased from vendor\",\n  \"images\": [\n    \"data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR4nGNgAAIAAAUAAeImBZsAAAAASUVORK5CYII=\"\n  ]\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/stock/movements/add",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "v1", "stock", "movements", "add"]
+            }
+          }
+        },
+        {
+          "name": "Issue Stock Movement OUT (with images)",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" },
+              { "key": "Authorization", "value": "Bearer {{token}}" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"itemId\": \"{{stockItemId}}\",\n  \"quantity\": 2,\n  \"issuedToUserId\": \"{{staffId}}\",\n  \"note\": \"Issued for office use\",\n  \"images\": [\n    \"data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR4nGNgAAIAAAUAAeImBZsAAAAASUVORK5CYII=\"\n  ]\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/stock/movements/issue",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "v1", "stock", "movements", "issue"]
+            }
+          }
+        },
+        {
+          "name": "Damage Stock Movement (with images)",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" },
+              { "key": "Authorization", "value": "Bearer {{token}}" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"itemId\": \"{{stockItemId}}\",\n  \"quantity\": 1,\n  \"note\": \"Found cracked\",\n  \"images\": [\n    \"data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR4nGNgAAIAAAUAAeImBZsAAAAASUVORK5CYII=\"\n  ]\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/stock/movements/damage",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "v1", "stock", "movements", "damage"]
+            }
+          }
+        },
+        {
+          "name": "Replace Stock Movement (with images)",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" },
+              { "key": "Authorization", "value": "Bearer {{token}}" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"itemId\": \"{{stockItemId}}\",\n  \"quantity\": 1,\n  \"note\": \"Replaced cracked plate with new one\",\n  \"images\": [\n    \"data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR4nGNgAAIAAAUAAeImBZsAAAAASUVORK5CYII=\"\n  ]\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/stock/movements/replace",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "v1", "stock", "movements", "replace"]
+            }
+          }
+        },
+        {
+          "name": "Start Maintenance (BEFORE images)",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" },
+              { "key": "Authorization", "value": "Bearer {{token}}" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"itemId\": \"{{stockItemId}}\",\n  \"quantity\": 1,\n  \"note\": \"Sent for repair\",\n  \"images\": [\n    \"data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR4nGNgAAIAAAUAAeImBZsAAAAASUVORK5CYII=\"\n  ]\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/stock/maintenance/start",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "v1", "stock", "maintenance", "start"]
+            }
+          }
+        },
+        {
+          "name": "Close Maintenance (AFTER images)",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" },
+              { "key": "Authorization", "value": "Bearer {{token}}" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"maintenanceId\": \"{{maintenanceId}}\",\n  \"note\": \"Repair completed\",\n  \"images\": [\n    \"data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR4nGNgAAIAAAUAAeImBZsAAAAASUVORK5CYII=\"\n  ]\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/stock/maintenance/close",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "v1", "stock", "maintenance", "close"]
+            }
+          }
+        },
+        {
+          "name": "Current Stock Report",
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Authorization", "value": "Bearer {{token}}" }],
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/stock/reports/current",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "v1", "stock", "reports", "current"]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Work Dashboard",
+      "item": [
+        {
+          "name": "Assign Work (with images base64)",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" },
+              { "key": "Authorization", "value": "Bearer {{token}}" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"title\": \"Prepare weekly report\",\n  \"description\": \"Create a weekly progress report\",\n  \"assignedToUserId\": \"{{staffId}}\",\n  \"images\": [\n    \"data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR4nGNgAAIAAAUAAeImBZsAAAAASUVORK5CYII=\"\n  ]\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/work",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "v1", "work"]
+            }
+          }
+        },
+        {
+          "name": "List Work",
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Authorization", "value": "Bearer {{token}}" }],
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/work?assignedToUserId={{staffId}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "v1", "work"],
+              "query": [{ "key": "assignedToUserId", "value": "{{staffId}}" }]
+            }
+          }
+        },
+        {
+          "name": "Get Work",
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Authorization", "value": "Bearer {{token}}" }],
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/work/{{workId}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "v1", "work", "{{workId}}"]
+            }
+          }
+        },
+        {
+          "name": "Upload Work Attachment (multipart)",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Authorization", "value": "Bearer {{token}}" }],
+            "body": {
+              "mode": "formdata",
+              "formdata": [{ "key": "file", "type": "file", "src": "" }]
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/work/{{workId}}/attachments",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "v1", "work", "{{workId}}", "attachments"]
+            }
+          }
+        },
+        {
+          "name": "Submit Work (with images base64)",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" },
+              { "key": "Authorization", "value": "Bearer {{token}}" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"note\": \"Submitted with proof photos\",\n  \"images\": [\n    \"data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR4nGNgAAIAAAUAAeImBZsAAAAASUVORK5CYII=\"\n  ]\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/work/{{workId}}/submit",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "v1", "work", "{{workId}}", "submit"]
+            }
+          }
+        },
+        {
+          "name": "Review Work (Approve / Reject)",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" },
+              { "key": "Authorization", "value": "Bearer {{token}}" }
+            ],
+            "body": { "mode": "raw", "raw": "{\n  \"approved\": true,\n  \"note\": \"Good\"\n}" },
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/work/{{workId}}/review",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "v1", "work", "{{workId}}", "review"]
+            }
+          }
+        },
+        {
+          "name": "Daily Work Report",
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Authorization", "value": "Bearer {{token}}" }],
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/work/reports/daily?from=2026-01-01&to=2026-12-31",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "v1", "work", "reports", "daily"],
+              "query": [
+                { "key": "from", "value": "2026-01-01" },
+                { "key": "to", "value": "2026-12-31" }
+              ]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Status Logs (Audit Trail)",
+      "item": [
+        {
+          "name": "List All Status Logs",
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Authorization", "value": "Bearer {{token}}" }],
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/status-logs?limit=100",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "v1", "status-logs"],
+              "query": [
+                { "key": "limit", "value": "100" },
+                { "key": "entityType", "value": "USER", "disabled": true },
+                { "key": "entityId", "value": "{{staffId}}", "disabled": true },
+                { "key": "changedByUserId", "value": "{{userId}}", "disabled": true },
+                { "key": "from", "value": "2026-01-01", "disabled": true },
+                { "key": "to", "value": "2026-12-31", "disabled": true }
+              ]
+            }
+          }
+        },
+        {
+          "name": "Status Logs for a Work Item",
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Authorization", "value": "Bearer {{token}}" }],
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/status-logs?entityType=WORK_ITEM&entityId={{workId}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "v1", "status-logs"],
+              "query": [
+                { "key": "entityType", "value": "WORK_ITEM" },
+                { "key": "entityId", "value": "{{workId}}" }
+              ]
+            }
+          }
+        },
+        {
+          "name": "Status Logs for a User",
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Authorization", "value": "Bearer {{token}}" }],
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/status-logs?entityType=USER&entityId={{staffId}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "v1", "status-logs"],
+              "query": [
+                { "key": "entityType", "value": "USER" },
+                { "key": "entityId", "value": "{{staffId}}" }
+              ]
+            }
+          }
+        },
+        {
+          "name": "Status Logs for Stock Maintenance",
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Authorization", "value": "Bearer {{token}}" }],
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/status-logs?entityType=STOCK_MAINTENANCE&entityId={{maintenanceId}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "v1", "status-logs"],
+              "query": [
+                { "key": "entityType", "value": "STOCK_MAINTENANCE" },
+                { "key": "entityId", "value": "{{maintenanceId}}" }
+              ]
+            }
+          }
+        }
+      ]
+    }
+  ],
+  "variable": [
+    { "key": "baseUrl", "value": "http://localhost:3000" },
+    { "key": "token", "value": "" },
+    { "key": "bootstrapKey", "value": "" },
+    { "key": "staffId", "value": "" },
+    { "key": "userId", "value": "" },
+    { "key": "teamId", "value": "" },
+    { "key": "profileChangeRequestId", "value": "" },
+    { "key": "stockItemId", "value": "" },
+    { "key": "maintenanceId", "value": "" },
+    { "key": "workId", "value": "" }
+  ]
+}
