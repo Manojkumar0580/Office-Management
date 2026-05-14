@@ -4,6 +4,7 @@ import { UserModel } from "../models/User";
 import { ApiError } from "../utils/apiError";
 import { staffValidation } from "../validation/staff.validation";
 import type { Role } from "../types/express";
+import { sendSuccess } from "../utils/apiResponse";
 
 export async function reviewStaff(req: Request, res: Response, next: NextFunction) {
   try {
@@ -15,7 +16,7 @@ export async function reviewStaff(req: Request, res: Response, next: NextFunctio
         candidateId,
         approvedByUserId: req.auth.userId,
       });
-      res.json(result);
+      sendSuccess(res, 200, "Application approved successfully.", result);
       return;
     }
 
@@ -24,7 +25,7 @@ export async function reviewStaff(req: Request, res: Response, next: NextFunctio
       reason: req.body.reason,
       rejectedByUserId: req.auth.userId,
     });
-    res.json({ ok: true });
+    sendSuccess(res, 200, "Application rejected.");
   } catch (err) {
     next(err);
   }
@@ -46,7 +47,7 @@ export async function listStaff(req: Request, res: Response, next: NextFunction)
     if (actorRole === "MANAGER" || actorRole === "TL") {
       const me = await UserModel.findById(req.auth.userId).select("_id teamId");
       if (!me?.teamId) {
-        res.json({ users: [] });
+        sendSuccess(res, 200, "No team assigned; staff list is empty.", { users: [] });
         return;
       }
       filter.teamId = me.teamId;
@@ -59,7 +60,7 @@ export async function listStaff(req: Request, res: Response, next: NextFunction)
       .sort({ createdAt: -1 })
       .limit(500);
 
-    res.json({ users });
+    sendSuccess(res, 200, "Staff list retrieved successfully.", { users });
   } catch (err) {
     next(err);
   }

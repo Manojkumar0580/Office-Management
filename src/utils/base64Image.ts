@@ -123,7 +123,10 @@ function detectMimeFromBuffer(buf: Buffer): string | undefined {
   }
 
   // GIF: "GIF87a" or "GIF89a"
-  if (buf.slice(0, 6).toString("ascii") === "GIF87a" || buf.slice(0, 6).toString("ascii") === "GIF89a") {
+  if (
+    buf.slice(0, 6).toString("ascii") === "GIF87a" ||
+    buf.slice(0, 6).toString("ascii") === "GIF89a"
+  ) {
     return "image/gif";
   }
 

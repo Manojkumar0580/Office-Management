@@ -2,9 +2,10 @@ import type { NextFunction, Request, Response } from "express";
 import { ApiError } from "../utils/apiError";
 import type { AdminCreatedRole, Role } from "../types/express";
 import type { UserStatus } from "../models/User";
-import { createUserByAdmin, listUsers } from "../services/userService";
+import { createUserByAdmin, listUsers, promoteUser } from "../services/userService";
 import { creatableRolesFor } from "../utils/roleHierarchy";
 import { userValidation } from "../validation/users.validation";
+import { sendSuccess } from "../utils/apiResponse";
 
 function requireAuth(req: Request) {
   if (!req.auth?.userId || !req.auth?.role) {
@@ -32,7 +33,7 @@ export async function createUserHandler(req: Request, res: Response, next: NextF
       livePhoto: req.body.livePhoto,
       certificates: req.body.certificates,
     });
-    res.status(201).json({ user: result });
+    sendSuccess(res, 201, "User account created successfully.", { user: result });
   } catch (err) {
     next(err);
   }
@@ -48,7 +49,7 @@ export async function listUsersHandler(req: Request, res: Response, next: NextFu
       status: req.query.status as UserStatus | undefined,
       teamId: req.query.teamId as string | undefined,
     });
-    res.json({ users });
+    sendSuccess(res, 200, "Users retrieved successfully.", { users });
   } catch (err) {
     next(err);
   }
@@ -57,7 +58,25 @@ export async function listUsersHandler(req: Request, res: Response, next: NextFu
 export async function getCreatableRolesHandler(req: Request, res: Response, next: NextFunction) {
   try {
     const { role } = requireAuth(req);
-    res.json({ roles: creatableRolesFor(role) });
+    sendSuccess(res, 200, "Creatable roles retrieved successfully.", {
+      roles: creatableRolesFor(role),
+    });
+  } catch (err) {
+    next(err);
+  }
+}
+
+export async function promoteUserHandler(req: Request, res: Response, next: NextFunction) {
+  try {
+    const { userId, role } = requireAuth(req);
+    const targetId = Array.isArray(req.params.id) ? req.params.id[0] : req.params.id;
+    const result = await promoteUser({
+      actorUserId: userId,
+      actorRole: role,
+      targetUserId: targetId,
+      newRole: req.body.role as Role,
+    });
+    sendSuccess(res, 200, "User role updated successfully.", { user: result });
   } catch (err) {
     next(err);
   }
@@ -65,3 +84,4 @@ export async function getCreatableRolesHandler(req: Request, res: Response, next
 
 export const createUserSchema = userValidation.createUser;
 export const listUsersSchema = userValidation.listUsers;
+export const promoteUserSchema = userValidation.promoteUser;

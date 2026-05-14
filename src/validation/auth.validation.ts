@@ -44,9 +44,28 @@ const registrationBody = Joi.object({
   certificates: Joi.array().items(certificateBase64Schema).max(10).optional(),
 });
 
+/** Same fields as registration, all optional; at least one field required. */
+const applicationUpdateBody = registrationBody
+  .fork(
+    [
+      "email",
+      "fullName",
+      "phone",
+      "password",
+      "aadharNumberLast4",
+      "additionalDetails",
+      "professional",
+      "livePhoto",
+      "certificates",
+    ],
+    (schema) => schema.optional(),
+  )
+  .min(1);
+
 export const authValidation = {
   registerStaff: validate({ body: registrationBody }),
   registerTrainee: validate({ body: registrationBody }),
+  patchApplication: validate({ body: applicationUpdateBody }),
 
   login: validate({
     body: Joi.object({
@@ -68,6 +87,22 @@ export const authValidation = {
       fullName: Joi.string().min(2).required(),
       password: Joi.string().min(10).required(),
       bootstrapKey: Joi.string().required(),
+    }),
+  }),
+
+  forgotPassword: validate({
+    body: Joi.object({
+      email: Joi.string().email().required(),
+    }),
+  }),
+
+  resetPassword: validate({
+    body: Joi.object({
+      email: Joi.string().email().required(),
+      otp: Joi.string()
+        .pattern(/^[0-9]{6}$/)
+        .required(),
+      newPassword: Joi.string().min(8).max(128).required(),
     }),
   }),
 } as const;

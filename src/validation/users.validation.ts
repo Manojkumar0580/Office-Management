@@ -1,7 +1,7 @@
 import Joi from "joi";
 import { validate } from "../middleware/validate";
 import { base64ImageSchema } from "./common.validation";
-import { ADMIN_CREATABLE_ROLES } from "../utils/roleHierarchy";
+import { ADMIN_CREATE_USER_ROLES, ALL_ROLES } from "../utils/roleHierarchy";
 
 const certificateBase64Schema = Joi.object({
   name: Joi.string().min(2).max(150).required(),
@@ -18,7 +18,7 @@ export const userValidation = {
         .optional(),
       password: Joi.string().min(8).max(128).required(),
       role: Joi.string()
-        .valid(...ADMIN_CREATABLE_ROLES)
+        .valid(...ADMIN_CREATE_USER_ROLES)
         .required(),
 
       teamId: Joi.string().optional(),
@@ -52,6 +52,17 @@ export const userValidation = {
       role: Joi.string().optional(),
       status: Joi.string().valid("PENDING_APPROVAL", "ACTIVE", "REJECTED", "DISABLED").optional(),
       teamId: Joi.string().optional(),
+    }),
+  }),
+
+  promoteUser: validate({
+    params: Joi.object({
+      id: Joi.string().required(),
+    }),
+    body: Joi.object({
+      role: Joi.string()
+        .valid(...ALL_ROLES)
+        .required(),
     }),
   }),
 } as const;

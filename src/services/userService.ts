@@ -1,14 +1,15 @@
 import mongoose from "mongoose";
 import { ApiError } from "../utils/apiError";
-import { UserModel, type UserStatus } from "../models/User";
+import { UserModel, type UserDoc, type UserStatus } from "../models/User";
 import { StaffProfileModel } from "../models/StaffProfile";
 import { TeamModel } from "../models/Team";
 import { hashPassword } from "../utils/crypto";
 import type { AdminCreatedRole, Role } from "../types/express";
 import { nextHumanId, sequenceKeyForRole } from "./idService";
-import { canCreateRole } from "../utils/roleHierarchy";
+import { canCreateRole, canPromoteUser } from "../utils/roleHierarchy";
 import { recordStatusChange } from "./statusLogService";
 import { saveBase64Image, type Base64ImageInput } from "../utils/base64Image";
+import { syncAdminRecordForUser } from "./adminRecordService";
 
 export type CreateUserByAdminInput = {
   // Performed by:
@@ -124,6 +125,8 @@ export async function createUserByAdmin(input: CreateUserByAdminInput) {
     },
   });
 
+  await syncAdminRecordForUser(user._id.toString(), user.role as Role);
+
   return {
     id: user._id.toString(),
     role: user.role,
@@ -169,4 +172,108 @@ export async function listUsers(input: {
     )
     .sort({ createdAt: -1 })
     .limit(500);
+}
+
+async function applyRoleIdentifiers(user: UserDoc, newRole: Role) {
+  user.employeeId = undefined;
+  user.traineeId = undefined;
+
+  if (newRole === "STAFF") {
+    const key = sequenceKeyForRole("STAFF");
+    if (!key) throw new ApiError(500, "No id sequence for STAFF");
+    const id = await nextHumanId(key);
+    user.humanId = id;
+    user.employeeId = id;
+    return;
+  }
+  if (newRole === "TRAINEE") {
+    const id = await nextHumanId("TRAINEE");
+    user.humanId = id;
+    user.traineeId = id;
+    return;
+  }
+  if (newRole === "SUPER_ADMIN") {
+    user.humanId = undefined;
+    return;
+  }
+
+  const seqKey = sequenceKeyForRole(newRole);
+  if (seqKey) {
+    user.humanId = await nextHumanId(seqKey);
+  } else {
+    user.humanId = undefined;
+  }
+}
+
+/**
+ * Change an active user's role. SUPER_ADMIN may set any role manually (including another SUPER_ADMIN).
+ * Other roles follow strict promotion rules (`canPromoteUser`).
+ */
+export async function promoteUser(input: {
+  actorUserId: string;
+  actorRole: Role;
+  targetUserId: string;
+  newRole: Role;
+}) {
+  if (input.actorUserId === input.targetUserId) {
+    throw new ApiError(400, "You cannot change your own role");
+  }
+
+  const subject = await UserModel.findById(input.targetUserId);
+  if (!subject) throw new ApiError(404, "User not found");
+  if (subject.status !== "ACTIVE") {
+    throw new ApiError(409, "Only active users can be assigned a different role");
+  }
+
+  const fromRole = subject.role as Role;
+  const toRole = input.newRole;
+
+  if (fromRole === toRole) {
+    throw new ApiError(409, "User already has this role");
+  }
+
+  if (toRole === "SUPER_ADMIN" && input.actorRole !== "SUPER_ADMIN") {
+    throw new ApiError(403, "Only Super Admin can assign the SUPER_ADMIN role");
+  }
+
+  if (input.actorRole === "SUPER_ADMIN") {
+    // Manual assignment: any valid role transition.
+  } else if (!canPromoteUser(input.actorRole, fromRole, toRole)) {
+    throw new ApiError(
+      403,
+      "You cannot assign this role change. Super Admin may set any role manually.",
+    );
+  }
+
+  if (input.actorRole === "MANAGER" || input.actorRole === "TL") {
+    const actor = await UserModel.findById(input.actorUserId).select("teamId");
+    if (!actor?.teamId || String(subject.teamId ?? "") !== String(actor.teamId)) {
+      throw new ApiError(403, "You can only change roles for users on your team");
+    }
+  }
+
+  subject.role = toRole;
+  await applyRoleIdentifiers(subject, toRole);
+  await subject.save();
+
+  await recordStatusChange({
+    entityType: "USER",
+    entityId: subject._id.toString(),
+    fromStatus: fromRole,
+    toStatus: toRole,
+    changedByUserId: input.actorUserId,
+    note: input.actorRole === "SUPER_ADMIN" ? "Role set manually" : "User promoted",
+    metadata: { fromRole, toRole },
+  });
+
+  await syncAdminRecordForUser(subject._id.toString(), toRole);
+
+  return {
+    id: subject._id.toString(),
+    role: subject.role,
+    humanId: subject.humanId,
+    employeeId: subject.employeeId,
+    traineeId: subject.traineeId,
+    status: subject.status,
+  };
 }

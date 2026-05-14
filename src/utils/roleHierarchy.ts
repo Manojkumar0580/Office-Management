@@ -18,6 +18,12 @@ export const ROLE_LEVEL: Record<Role, number> = {
   TRAINEE: 20,
 };
 
+/** Every role value (for validation / Super Admin manual assignment). */
+export const ALL_ROLES = Object.keys(ROLE_LEVEL) as Role[];
+
+/** Roles allowed on POST /users (all except STAFF / TRAINEE — those self-register). */
+export const ADMIN_CREATE_USER_ROLES = ALL_ROLES.filter((r) => r !== "STAFF" && r !== "TRAINEE");
+
 /**
  * Roles that can be CREATED directly via the admin "create user" flow.
  * STAFF and TRAINEE are excluded because they go through public self-registration.
@@ -32,13 +38,19 @@ export const ADMIN_CREATABLE_ROLES: Role[] = [
   "CASHIER",
 ];
 
+/** Roles an existing user can be promoted into (includes STAFF for TRAINEE → STAFF). */
+export const PROMOTABLE_TARGET_ROLES: Role[] = [...ADMIN_CREATABLE_ROLES, "STAFF"];
+
 /**
  * Returns whether `actor` can create a user with role `target`.
  *
- *  - The actor must have strictly higher authority than the target.
- *  - The target role must be in the admin-creatable set.
+ *  - Super Admin may create any role except STAFF / TRAINEE (including another SUPER_ADMIN).
+ *  - Other actors: target must be in the admin-creatable set and strictly below the actor.
  */
 export function canCreateRole(actor: Role, target: Role): boolean {
+  // STAFF / TRAINEE always come from public self-registration, not admin create.
+  if (target === "STAFF" || target === "TRAINEE") return false;
+  if (actor === "SUPER_ADMIN") return true;
   if (!ADMIN_CREATABLE_ROLES.includes(target)) return false;
   return ROLE_LEVEL[actor] > ROLE_LEVEL[target];
 }
@@ -47,7 +59,27 @@ export function canCreateRole(actor: Role, target: Role): boolean {
  * Returns the list of roles `actor` is allowed to create.
  */
 export function creatableRolesFor(actor: Role): Role[] {
+  if (actor === "SUPER_ADMIN") {
+    return [...ADMIN_CREATE_USER_ROLES];
+  }
   return ADMIN_CREATABLE_ROLES.filter((r) => ROLE_LEVEL[actor] > ROLE_LEVEL[r]);
+}
+
+/**
+ * Whether a non–Super Admin may change `subject`'s role from `fromRole` to `toRole`.
+ * Super Admin bypasses this and may set any role manually (see `promoteUser` in userService).
+ *
+ * - Subject must be below the actor; new role must be strictly below the actor.
+ * - New role must be strictly higher than the old role (promotion only).
+ * - SUPER_ADMIN is never a valid promotion target or source here.
+ */
+export function canPromoteUser(actor: Role, fromRole: Role, toRole: Role): boolean {
+  if (fromRole === "SUPER_ADMIN" || toRole === "SUPER_ADMIN") return false;
+  if (!PROMOTABLE_TARGET_ROLES.includes(toRole)) return false;
+  if (ROLE_LEVEL[actor] <= ROLE_LEVEL[fromRole]) return false;
+  if (ROLE_LEVEL[actor] <= ROLE_LEVEL[toRole]) return false;
+  if (ROLE_LEVEL[toRole] <= ROLE_LEVEL[fromRole]) return false;
+  return true;
 }
 
 /**

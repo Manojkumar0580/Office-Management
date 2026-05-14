@@ -1,6 +1,7 @@
 import type { Request, Response, NextFunction } from "express";
 import { ApiError } from "../utils/apiError";
 import { UserModel } from "../models/User";
+import { sendSuccess } from "../utils/apiResponse";
 
 export async function getMe(req: Request, res: Response, next: NextFunction) {
   try {
@@ -12,7 +13,7 @@ export async function getMe(req: Request, res: Response, next: NextFunction) {
     );
     if (!user) throw new ApiError(404, "User not found");
 
-    res.json({ user });
+    sendSuccess(res, 200, "Current user profile retrieved successfully.", { user });
   } catch (err) {
     next(err);
   }

@@ -12,12 +12,13 @@ import {
 import { StaffProfileModel } from "../models/StaffProfile";
 import { ProfileChangeRequestModel } from "../models/ProfileChangeRequest";
 import { staffProfileValidation } from "../validation/staffProfile.validation";
+import { sendSuccess } from "../utils/apiResponse";
 
 export async function getStaffProfile(req: Request, res: Response, next: NextFunction) {
   try {
     const userId = Array.isArray(req.params.id) ? req.params.id[0] : req.params.id;
     const profile = await StaffProfileModel.findOne({ userId });
-    res.json({ profile });
+    sendSuccess(res, 200, "Staff profile retrieved successfully.", { profile });
   } catch (err) {
     next(err);
   }
@@ -39,7 +40,7 @@ export async function requestStaffProfileUpdate(req: Request, res: Response, nex
       changes: req.body,
     });
 
-    res.status(201).json({ request: reqDoc });
+    sendSuccess(res, 201, "Profile update request submitted successfully.", { request: reqDoc });
   } catch (err) {
     next(err);
   }
@@ -56,7 +57,7 @@ export async function reviewStaffProfileUpdate(req: Request, res: Response, next
       reviewedByUserId: req.auth.userId,
       reason: req.body.reason,
     });
-    res.json(result);
+    sendSuccess(res, 200, result.message);
   } catch (err) {
     next(err);
   }
@@ -68,7 +69,7 @@ export async function listProfileChangeRequests(req: Request, res: Response, nex
     const requests = await ProfileChangeRequestModel.find({ status })
       .sort({ createdAt: -1 })
       .limit(200);
-    res.json({ requests });
+    sendSuccess(res, 200, "Profile change requests retrieved successfully.", { requests });
   } catch (err) {
     next(err);
   }
@@ -80,7 +81,7 @@ export async function uploadLivePhoto(req: Request, res: Response, next: NextFun
     const userId = Array.isArray(req.params.id) ? req.params.id[0] : req.params.id;
     const relativePath = path.join("uploads", path.basename(req.file.path));
     const profile = await setLivePhoto(userId, relativePath);
-    res.json({ profile });
+    sendSuccess(res, 200, "Live photo updated successfully.", { profile });
   } catch (err) {
     next(err);
   }
@@ -92,7 +93,7 @@ export async function uploadCertificate(req: Request, res: Response, next: NextF
     const userId = Array.isArray(req.params.id) ? req.params.id[0] : req.params.id;
     const relativePath = path.join("uploads", path.basename(req.file.path));
     const profile = await addCertificate(userId, { name: req.body.name, filePath: relativePath });
-    res.json({ profile });
+    sendSuccess(res, 200, "Document uploaded successfully.", { profile });
   } catch (err) {
     next(err);
   }
@@ -102,7 +103,7 @@ export async function uploadLivePhotoBase64(req: Request, res: Response, next: N
   try {
     const userId = Array.isArray(req.params.id) ? req.params.id[0] : req.params.id;
     const profile = await setLivePhotoFromBase64(userId, req.body.image);
-    res.json({ profile });
+    sendSuccess(res, 200, "Live photo updated successfully.", { profile });
   } catch (err) {
     next(err);
   }
@@ -115,7 +116,7 @@ export async function uploadCertificateBase64(req: Request, res: Response, next:
       name: req.body.name,
       image: req.body.image,
     });
-    res.json({ profile });
+    sendSuccess(res, 200, "Document uploaded successfully.", { profile });
   } catch (err) {
     next(err);
   }

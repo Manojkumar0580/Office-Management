@@ -11,6 +11,7 @@ import {
   updateStockItem,
 } from "../services/stockService";
 import { stockValidation } from "../validation/stock.validation";
+import { sendSuccess } from "../utils/apiResponse";
 
 async function requireUserId(req: Request) {
   const userId = req.auth?.userId;
@@ -28,7 +29,7 @@ export async function createItem(req: Request, res: Response, next: NextFunction
       images: req.body.images,
       createdByUserId,
     });
-    res.status(201).json({ item });
+    sendSuccess(res, 201, "Stock item created successfully.", { item });
   } catch (err) {
     next(err);
   }
@@ -46,7 +47,7 @@ export async function updateItem(req: Request, res: Response, next: NextFunction
       images: req.body.images,
       updatedByUserId,
     });
-    res.json({ item });
+    sendSuccess(res, 200, "Stock item updated successfully.", { item });
   } catch (err) {
     next(err);
   }
@@ -56,7 +57,7 @@ export async function deleteItem(req: Request, res: Response, next: NextFunction
   try {
     const id = Array.isArray(req.params.id) ? req.params.id[0] : req.params.id;
     const item = await deactivateStockItem(id);
-    res.json({ item });
+    sendSuccess(res, 200, "Stock item deactivated successfully.", { item });
   } catch (err) {
     next(err);
   }
@@ -65,7 +66,7 @@ export async function deleteItem(req: Request, res: Response, next: NextFunction
 export async function listItems(_req: Request, res: Response, next: NextFunction) {
   try {
     const items = await listStockItems();
-    res.json({ items });
+    sendSuccess(res, 200, "Stock items retrieved successfully.", { items });
   } catch (err) {
     next(err);
   }
@@ -82,7 +83,7 @@ export async function addStock(req: Request, res: Response, next: NextFunction) 
       note: req.body.note,
       images: req.body.images,
     });
-    res.status(201).json({ movement });
+    sendSuccess(res, 201, "Stock added successfully.", { movement });
   } catch (err) {
     next(err);
   }
@@ -100,7 +101,7 @@ export async function issueStock(req: Request, res: Response, next: NextFunction
       issuedToUserId: req.body.issuedToUserId,
       images: req.body.images,
     });
-    res.status(201).json({ movement });
+    sendSuccess(res, 201, "Stock issued successfully.", { movement });
   } catch (err) {
     next(err);
   }
@@ -117,7 +118,7 @@ export async function damageStock(req: Request, res: Response, next: NextFunctio
       note: req.body.note,
       images: req.body.images,
     });
-    res.status(201).json({ movement });
+    sendSuccess(res, 201, "Damage recorded successfully.", { movement });
   } catch (err) {
     next(err);
   }
@@ -134,7 +135,7 @@ export async function replaceStock(req: Request, res: Response, next: NextFuncti
       note: req.body.note,
       images: req.body.images,
     });
-    res.status(201).json({ movement });
+    sendSuccess(res, 201, "Replacement recorded successfully.", { movement });
   } catch (err) {
     next(err);
   }
@@ -150,7 +151,7 @@ export async function startMaintenanceHandler(req: Request, res: Response, next:
       note: req.body.note,
       images: req.body.images,
     });
-    res.status(201).json({ maintenance });
+    sendSuccess(res, 201, "Maintenance started successfully.", { maintenance });
   } catch (err) {
     next(err);
   }
@@ -165,7 +166,7 @@ export async function closeMaintenanceHandler(req: Request, res: Response, next:
       note: req.body.note,
       images: req.body.images,
     });
-    res.json({ maintenance });
+    sendSuccess(res, 200, "Maintenance closed successfully.", { maintenance });
   } catch (err) {
     next(err);
   }
@@ -174,7 +175,7 @@ export async function closeMaintenanceHandler(req: Request, res: Response, next:
 export async function currentReport(_req: Request, res: Response, next: NextFunction) {
   try {
     const report = await getCurrentStockReport();
-    res.json({ report });
+    sendSuccess(res, 200, "Current stock report generated successfully.", { report });
   } catch (err) {
     next(err);
   }

@@ -68,7 +68,7 @@ export async function reviewProfileUpdate(input: {
       note: input.reason,
     });
 
-    return { ok: true };
+    return { message: "Profile change request was rejected." };
   }
 
   // Apply changes (simple merge). We keep this conservative and only allow specific paths in controller validation.
@@ -90,7 +90,7 @@ export async function reviewProfileUpdate(input: {
     changedByUserId: input.reviewedByUserId,
   });
 
-  return { ok: true };
+  return { message: "Profile change request was approved and applied." };
 }
 
 export async function setLivePhoto(userId: string, filePath: string) {

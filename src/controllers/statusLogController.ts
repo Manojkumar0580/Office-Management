@@ -2,6 +2,7 @@ import type { NextFunction, Request, Response } from "express";
 import type { StatusEntityType } from "../models/StatusLog";
 import { listStatusLogs } from "../services/statusLogService";
 import { statusLogValidation } from "../validation/statusLog.validation";
+import { sendSuccess } from "../utils/apiResponse";
 
 export async function listLogsHandler(req: Request, res: Response, next: NextFunction) {
   try {
@@ -13,7 +14,7 @@ export async function listLogsHandler(req: Request, res: Response, next: NextFun
       to: req.query.to ? new Date(String(req.query.to)) : undefined,
       limit: req.query.limit ? Number(req.query.limit) : undefined,
     });
-    res.json({ logs });
+    sendSuccess(res, 200, "Status logs retrieved successfully.", { logs });
   } catch (err) {
     next(err);
   }

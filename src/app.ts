@@ -19,7 +19,11 @@ export function createApp() {
   app.use(morgan("dev"));
 
   app.get("/health", (_req, res) => {
-    res.json({ ok: true });
+    res.json({
+      status: true,
+      statusCode: 200,
+      message: "Service is running.",
+    });
   });
 
   // Static serving of uploaded files (images, certificates, etc.)

@@ -12,6 +12,7 @@ import {
   submitWork,
 } from "../services/workService";
 import { workValidation } from "../validation/work.validation";
+import { sendSuccess } from "../utils/apiResponse";
 
 export async function assignHandler(req: Request, res: Response, next: NextFunction) {
   try {
@@ -25,7 +26,7 @@ export async function assignHandler(req: Request, res: Response, next: NextFunct
       dueDate: req.body.dueDate ? new Date(req.body.dueDate) : undefined,
       images: req.body.images,
     });
-    res.status(201).json({ work });
+    sendSuccess(res, 201, "Work assigned successfully.", { work });
   } catch (err) {
     next(err);
   }
@@ -43,7 +44,7 @@ export async function listHandler(req: Request, res: Response, next: NextFunctio
       from,
       to,
     });
-    res.json({ items });
+    sendSuccess(res, 200, "Work items retrieved successfully.", { items });
   } catch (err) {
     next(err);
   }
@@ -53,7 +54,7 @@ export async function getHandler(req: Request, res: Response, next: NextFunction
   try {
     const id = Array.isArray(req.params.id) ? req.params.id[0] : req.params.id;
     const work = await getWork(id);
-    res.json({ work });
+    sendSuccess(res, 200, "Work item retrieved successfully.", { work });
   } catch (err) {
     next(err);
   }
@@ -69,7 +70,7 @@ export async function uploadAttachmentHandler(req: Request, res: Response, next:
       originalName: req.file.originalname,
       filePath: relativePath,
     });
-    res.json({ work });
+    sendSuccess(res, 200, "Attachment uploaded successfully.", { work });
   } catch (err) {
     next(err);
   }
@@ -86,7 +87,7 @@ export async function submitHandler(req: Request, res: Response, next: NextFunct
       note: req.body.note,
       images: req.body.images,
     });
-    res.json(result);
+    sendSuccess(res, 200, "Work submitted successfully.", result);
   } catch (err) {
     next(err);
   }
@@ -103,7 +104,7 @@ export async function reviewHandler(req: Request, res: Response, next: NextFunct
       approved: req.body.approved,
       note: req.body.note,
     });
-    res.json({ work });
+    sendSuccess(res, 200, "Work review saved successfully.", { work });
   } catch (err) {
     next(err);
   }
@@ -115,7 +116,7 @@ export async function dailyReportHandler(req: Request, res: Response, next: Next
       from: new Date(String(req.query.from)),
       to: new Date(String(req.query.to)),
     });
-    res.json({ report });
+    sendSuccess(res, 200, "Daily work report generated successfully.", { report });
   } catch (err) {
     next(err);
   }

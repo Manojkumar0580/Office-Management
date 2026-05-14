@@ -8,6 +8,7 @@ import {
   updateTeam,
 } from "../services/teamService";
 import { teamValidation } from "../validation/team.validation";
+import { sendSuccess } from "../utils/apiResponse";
 
 function requireAuth(req: Request) {
   if (!req.auth?.userId || !req.auth?.role) {
@@ -26,7 +27,7 @@ export async function createTeamHandler(req: Request, res: Response, next: NextF
       leadUserId: req.body.leadUserId,
       createdByUserId: userId,
     });
-    res.status(201).json({ team });
+    sendSuccess(res, 201, "Team created successfully.", { team });
   } catch (err) {
     next(err);
   }
@@ -36,7 +37,7 @@ export async function updateTeamHandler(req: Request, res: Response, next: NextF
   try {
     const id = Array.isArray(req.params.id) ? req.params.id[0] : req.params.id;
     const team = await updateTeam(id, req.body);
-    res.json({ team });
+    sendSuccess(res, 200, "Team updated successfully.", { team });
   } catch (err) {
     next(err);
   }
@@ -46,7 +47,7 @@ export async function listTeamsHandler(req: Request, res: Response, next: NextFu
   try {
     const { userId, role } = requireAuth(req);
     const teams = await listTeams({ actorUserId: userId, actorRole: role });
-    res.json({ teams });
+    sendSuccess(res, 200, "Teams retrieved successfully.", { teams });
   } catch (err) {
     next(err);
   }
@@ -56,7 +57,7 @@ export async function getTeamHandler(req: Request, res: Response, next: NextFunc
   try {
     const id = Array.isArray(req.params.id) ? req.params.id[0] : req.params.id;
     const team = await getTeam(id);
-    res.json({ team });
+    sendSuccess(res, 200, "Team retrieved successfully.", { team });
   } catch (err) {
     next(err);
   }
@@ -69,7 +70,7 @@ export async function assignUserToTeamHandler(req: Request, res: Response, next:
       teamId: req.body.teamId,
       reportsToUserId: req.body.reportsToUserId,
     });
-    res.json({ user });
+    sendSuccess(res, 200, "User team assignment updated successfully.", { user });
   } catch (err) {
     next(err);
   }
