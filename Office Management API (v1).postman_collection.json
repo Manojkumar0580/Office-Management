@@ -1,8 +1,11 @@
 {
   "info": {
+    "_postman_id": "6176349f-8b5a-4394-ab79-a0b8b44aa746",
     "name": "Office Management API (v1)",
     "description": "Office Management API v1.\n\n**Folders:** Health; Auth split into **Bootstrap & register**, **Login & password (OTP)**, **Session (Bearer)**; **Users & platform admin** with **Roles / list / promote** and **Create user (examples)**; Teams; Staff approval; Staff profiles (with **Profile change requests**); Stock split into **Items**, **Movements**, **Maintenance**, **Reports**; Work; Status logs.\n\n**Variables:** `baseUrl`, `token` (Bearer — from login `data.token`), `bootstrapKey`, `staffId`, `userId`, `teamId`, `profileChangeRequestId`, `stockItemId`, `maintenanceId`, `workId`.\n\n**Response shape (success):** `{ \"status\": true, \"statusCode\": <http>, \"message\": \"...\", \"data\": { ... } }` — `data` may be omitted.\n\n**Errors:** `{ \"status\": false, \"statusCode\": <http>, \"message\": \"...\", \"details\": ... }`\n\n**Auth:** Login returns token inside `data`. Forgot password sends a **6-digit OTP** by email; reset password uses `email` + `otp` + `newPassword` (not a link token).",
-    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+    "_exporter_id": "27374093",
+    "_collection_link": "https://go.postman.co/collection/27374093-6176349f-8b5a-4394-ab79-a0b8b44aa746?source=collection_link"
   },
   "item": [
     {
@@ -12,13 +15,15 @@
           "name": "API Health",
           "request": {
             "method": "GET",
+            "header": [],
             "url": {
               "raw": "{{baseUrl}}/api/v1/health",
               "host": ["{{baseUrl}}"],
               "path": ["api", "v1", "health"]
             },
             "description": "Example: `{ \"status\": true, \"statusCode\": 200, \"message\": \"...\", \"data\": { \"version\": \"v1\" } }`"
-          }
+          },
+          "response": []
         }
       ]
     },
@@ -44,7 +49,8 @@
               "host": ["{{baseUrl}}"],
               "path": ["api", "v1", "auth", "bootstrap-super-admin"]
             }
-          }
+          },
+          "response": []
         },
         {
           "name": "Register Staff (self, full profile + base64)",
@@ -65,7 +71,8 @@
               "host": ["{{baseUrl}}"],
               "path": ["api", "v1", "auth", "register", "staff"]
             }
-          }
+          },
+          "response": []
         },
         {
           "name": "Register Trainee (self, full profile + base64)",
@@ -86,7 +93,8 @@
               "host": ["{{baseUrl}}"],
               "path": ["api", "v1", "auth", "register", "trainee"]
             }
-          }
+          },
+          "response": []
         }
       ]
     },
@@ -95,6 +103,20 @@
       "item": [
         {
           "name": "Login",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "try {",
+                  "  const j = pm.response.json();",
+                  "  if (j.data && j.data.token) pm.collectionVariables.set('token', j.data.token);",
+                  "} catch (e) {}"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
           "request": {
             "method": "POST",
             "header": [
@@ -114,20 +136,7 @@
             },
             "description": "Success: `data.token`, `data.role`, `data.status`, `data.mustChangePassword`. Save `data.token` to collection variable `token` for Bearer auth."
           },
-          "event": [
-            {
-              "listen": "test",
-              "script": {
-                "exec": [
-                  "try {",
-                  "  const j = pm.response.json();",
-                  "  if (j.data && j.data.token) pm.collectionVariables.set('token', j.data.token);",
-                  "} catch (e) {}"
-                ],
-                "type": "text/javascript"
-              }
-            }
-          ]
+          "response": []
         },
         {
           "name": "Forgot Password (send OTP)",
@@ -149,7 +158,8 @@
               "path": ["api", "v1", "auth", "forgot-password"]
             },
             "description": "Always returns 200 with the same `message` (no email enumeration). Check email or server logs (dev) for the 6-digit OTP."
-          }
+          },
+          "response": []
         },
         {
           "name": "Reset Password (email + OTP + new password)",
@@ -171,7 +181,8 @@
               "path": ["api", "v1", "auth", "reset-password"]
             },
             "description": "`otp` must be exactly 6 digits from the forgot-password email (or dev console)."
-          }
+          },
+          "response": []
         }
       ]
     },
@@ -201,7 +212,8 @@
               "host": ["{{baseUrl}}"],
               "path": ["api", "v1", "auth", "change-password"]
             }
-          }
+          },
+          "response": []
         },
         {
           "name": "Me",
@@ -219,7 +231,8 @@
               "path": ["api", "v1", "me"]
             },
             "description": "Success payload: `data.user`."
-          }
+          },
+          "response": []
         },
         {
           "name": "Patch My Application (draft staff/trainee only)",
@@ -245,7 +258,8 @@
               "path": ["api", "v1", "me", "application"]
             },
             "description": "Requires Bearer token. Only while account is `PENDING_APPROVAL` (draft). Body: any subset of registration fields; at least one field required."
-          }
+          },
+          "response": []
         }
       ]
     },
@@ -270,7 +284,8 @@
                   "host": ["{{baseUrl}}"],
                   "path": ["api", "v1", "users", "creatable-roles"]
                 }
-              }
+              },
+              "response": []
             },
             {
               "name": "List Users",
@@ -303,7 +318,8 @@
                   ]
                 },
                 "description": "Success: `data.users`."
-              }
+              },
+              "response": []
             },
             {
               "name": "Promote User (change role)",
@@ -329,7 +345,8 @@
                   "path": ["api", "v1", "users", "{{staffId}}", "promote"]
                 },
                 "description": "SUPER_ADMIN can set any role; others follow promotion rules. Target user must be ACTIVE. Success: `data.user`."
-              }
+              },
+              "response": []
             }
           ]
         },
@@ -359,7 +376,8 @@
                   "host": ["{{baseUrl}}"],
                   "path": ["api", "v1", "users"]
                 }
-              }
+              },
+              "response": []
             },
             {
               "name": "Create User (Manager example)",
@@ -384,7 +402,8 @@
                   "host": ["{{baseUrl}}"],
                   "path": ["api", "v1", "users"]
                 }
-              }
+              },
+              "response": []
             },
             {
               "name": "Create User (Team Lead example)",
@@ -409,7 +428,8 @@
                   "host": ["{{baseUrl}}"],
                   "path": ["api", "v1", "users"]
                 }
-              }
+              },
+              "response": []
             },
             {
               "name": "Create User (Cashier example)",
@@ -434,7 +454,8 @@
                   "host": ["{{baseUrl}}"],
                   "path": ["api", "v1", "users"]
                 }
-              }
+              },
+              "response": []
             },
             {
               "name": "Create User (Captain example)",
@@ -459,7 +480,8 @@
                   "host": ["{{baseUrl}}"],
                   "path": ["api", "v1", "users"]
                 }
-              }
+              },
+              "response": []
             },
             {
               "name": "Create User (Accountant example)",
@@ -484,7 +506,8 @@
                   "host": ["{{baseUrl}}"],
                   "path": ["api", "v1", "users"]
                 }
-              }
+              },
+              "response": []
             },
             {
               "name": "Create User (Admin example) — only SUPER_ADMIN",
@@ -509,7 +532,8 @@
                   "host": ["{{baseUrl}}"],
                   "path": ["api", "v1", "users"]
                 }
-              }
+              },
+              "response": []
             }
           ]
         }
@@ -541,7 +565,8 @@
               "host": ["{{baseUrl}}"],
               "path": ["api", "v1", "teams"]
             }
-          }
+          },
+          "response": []
         },
         {
           "name": "List Teams",
@@ -558,7 +583,8 @@
               "host": ["{{baseUrl}}"],
               "path": ["api", "v1", "teams"]
             }
-          }
+          },
+          "response": []
         },
         {
           "name": "Get Team",
@@ -575,7 +601,8 @@
               "host": ["{{baseUrl}}"],
               "path": ["api", "v1", "teams", "{{teamId}}"]
             }
-          }
+          },
+          "response": []
         },
         {
           "name": "Update Team",
@@ -600,7 +627,8 @@
               "host": ["{{baseUrl}}"],
               "path": ["api", "v1", "teams", "{{teamId}}"]
             }
-          }
+          },
+          "response": []
         },
         {
           "name": "Assign User to Team",
@@ -625,7 +653,8 @@
               "host": ["{{baseUrl}}"],
               "path": ["api", "v1", "teams", "assign-user"]
             }
-          }
+          },
+          "response": []
         }
       ]
     },
@@ -658,7 +687,8 @@
                 }
               ]
             }
-          }
+          },
+          "response": []
         },
         {
           "name": "Review Staff — APPROVE",
@@ -683,7 +713,8 @@
               "host": ["{{baseUrl}}"],
               "path": ["api", "v1", "staff", "{{staffId}}", "review"]
             }
-          }
+          },
+          "response": []
         },
         {
           "name": "Review Staff — REJECT",
@@ -708,7 +739,8 @@
               "host": ["{{baseUrl}}"],
               "path": ["api", "v1", "staff", "{{staffId}}", "review"]
             }
-          }
+          },
+          "response": []
         }
       ]
     },
@@ -733,7 +765,8 @@
                   "host": ["{{baseUrl}}"],
                   "path": ["api", "v1", "staff", "{{staffId}}", "profile"]
                 }
-              }
+              },
+              "response": []
             },
             {
               "name": "Request Profile Update",
@@ -758,7 +791,8 @@
                   "host": ["{{baseUrl}}"],
                   "path": ["api", "v1", "staff", "{{staffId}}", "profile"]
                 }
-              }
+              },
+              "response": []
             },
             {
               "name": "Upload Live Photo (multipart)",
@@ -776,7 +810,7 @@
                     {
                       "key": "photo",
                       "type": "file",
-                      "src": ""
+                      "value": ""
                     }
                   ]
                 },
@@ -785,7 +819,8 @@
                   "host": ["{{baseUrl}}"],
                   "path": ["api", "v1", "staff", "{{staffId}}", "photo"]
                 }
-              }
+              },
+              "response": []
             },
             {
               "name": "Upload Live Photo (base64 JSON)",
@@ -810,7 +845,8 @@
                   "host": ["{{baseUrl}}"],
                   "path": ["api", "v1", "staff", "{{staffId}}", "photo", "base64"]
                 }
-              }
+              },
+              "response": []
             },
             {
               "name": "Upload Certificate (multipart)",
@@ -833,7 +869,7 @@
                     {
                       "key": "document",
                       "type": "file",
-                      "src": ""
+                      "value": ""
                     }
                   ]
                 },
@@ -842,7 +878,8 @@
                   "host": ["{{baseUrl}}"],
                   "path": ["api", "v1", "staff", "{{staffId}}", "documents"]
                 }
-              }
+              },
+              "response": []
             },
             {
               "name": "Upload Certificate (base64 JSON)",
@@ -867,7 +904,8 @@
                   "host": ["{{baseUrl}}"],
                   "path": ["api", "v1", "staff", "{{staffId}}", "documents", "base64"]
                 }
-              }
+              },
+              "response": []
             }
           ]
         },
@@ -895,7 +933,8 @@
                     }
                   ]
                 }
-              }
+              },
+              "response": []
             },
             {
               "name": "Review Profile Change Request",
@@ -926,7 +965,8 @@
                     "review"
                   ]
                 }
-              }
+              },
+              "response": []
             }
           ]
         }
@@ -961,7 +1001,8 @@
                   "host": ["{{baseUrl}}"],
                   "path": ["api", "v1", "stock", "items"]
                 }
-              }
+              },
+              "response": []
             },
             {
               "name": "List Stock Items",
@@ -978,7 +1019,8 @@
                   "host": ["{{baseUrl}}"],
                   "path": ["api", "v1", "stock", "items"]
                 }
-              }
+              },
+              "response": []
             },
             {
               "name": "Update Stock Item (append images)",
@@ -1003,7 +1045,8 @@
                   "host": ["{{baseUrl}}"],
                   "path": ["api", "v1", "stock", "items", "{{stockItemId}}"]
                 }
-              }
+              },
+              "response": []
             },
             {
               "name": "Delete Stock Item (soft)",
@@ -1020,7 +1063,8 @@
                   "host": ["{{baseUrl}}"],
                   "path": ["api", "v1", "stock", "items", "{{stockItemId}}"]
                 }
-              }
+              },
+              "response": []
             }
           ]
         },
@@ -1050,7 +1094,8 @@
                   "host": ["{{baseUrl}}"],
                   "path": ["api", "v1", "stock", "movements", "add"]
                 }
-              }
+              },
+              "response": []
             },
             {
               "name": "Issue Stock Movement OUT (with images)",
@@ -1075,7 +1120,8 @@
                   "host": ["{{baseUrl}}"],
                   "path": ["api", "v1", "stock", "movements", "issue"]
                 }
-              }
+              },
+              "response": []
             },
             {
               "name": "Damage Stock Movement (with images)",
@@ -1100,7 +1146,8 @@
                   "host": ["{{baseUrl}}"],
                   "path": ["api", "v1", "stock", "movements", "damage"]
                 }
-              }
+              },
+              "response": []
             },
             {
               "name": "Replace Stock Movement (with images)",
@@ -1125,7 +1172,8 @@
                   "host": ["{{baseUrl}}"],
                   "path": ["api", "v1", "stock", "movements", "replace"]
                 }
-              }
+              },
+              "response": []
             }
           ]
         },
@@ -1155,7 +1203,8 @@
                   "host": ["{{baseUrl}}"],
                   "path": ["api", "v1", "stock", "maintenance", "start"]
                 }
-              }
+              },
+              "response": []
             },
             {
               "name": "Close Maintenance (AFTER images)",
@@ -1180,7 +1229,8 @@
                   "host": ["{{baseUrl}}"],
                   "path": ["api", "v1", "stock", "maintenance", "close"]
                 }
-              }
+              },
+              "response": []
             }
           ]
         },
@@ -1202,7 +1252,8 @@
                   "host": ["{{baseUrl}}"],
                   "path": ["api", "v1", "stock", "reports", "current"]
                 }
-              }
+              },
+              "response": []
             }
           ]
         }
@@ -1234,7 +1285,8 @@
               "host": ["{{baseUrl}}"],
               "path": ["api", "v1", "work"]
             }
-          }
+          },
+          "response": []
         },
         {
           "name": "List Work",
@@ -1257,7 +1309,8 @@
                 }
               ]
             }
-          }
+          },
+          "response": []
         },
         {
           "name": "Get Work",
@@ -1274,7 +1327,8 @@
               "host": ["{{baseUrl}}"],
               "path": ["api", "v1", "work", "{{workId}}"]
             }
-          }
+          },
+          "response": []
         },
         {
           "name": "Upload Work Attachment (multipart)",
@@ -1292,7 +1346,7 @@
                 {
                   "key": "file",
                   "type": "file",
-                  "src": ""
+                  "value": ""
                 }
               ]
             },
@@ -1301,7 +1355,8 @@
               "host": ["{{baseUrl}}"],
               "path": ["api", "v1", "work", "{{workId}}", "attachments"]
             }
-          }
+          },
+          "response": []
         },
         {
           "name": "Submit Work (with images base64)",
@@ -1326,7 +1381,8 @@
               "host": ["{{baseUrl}}"],
               "path": ["api", "v1", "work", "{{workId}}", "submit"]
             }
-          }
+          },
+          "response": []
         },
         {
           "name": "Review Work (Approve / Reject)",
@@ -1351,7 +1407,8 @@
               "host": ["{{baseUrl}}"],
               "path": ["api", "v1", "work", "{{workId}}", "review"]
             }
-          }
+          },
+          "response": []
         },
         {
           "name": "Daily Work Report",
@@ -1378,7 +1435,8 @@
                 }
               ]
             }
-          }
+          },
+          "response": []
         }
       ]
     },
@@ -1431,7 +1489,8 @@
                 }
               ]
             }
-          }
+          },
+          "response": []
         },
         {
           "name": "Status Logs for a Work Item",
@@ -1458,7 +1517,8 @@
                 }
               ]
             }
-          }
+          },
+          "response": []
         },
         {
           "name": "Status Logs for a User",
@@ -1485,7 +1545,8 @@
                 }
               ]
             }
-          }
+          },
+          "response": []
         },
         {
           "name": "Status Logs for Stock Maintenance",
@@ -1512,7 +1573,8 @@
                 }
               ]
             }
-          }
+          },
+          "response": []
         }
       ]
     }

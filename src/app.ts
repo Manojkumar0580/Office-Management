@@ -11,6 +11,10 @@ import { ensureDir } from "./utils/files";
 export function createApp() {
   const app = express();
 
+  // Set view engine to EJS
+  app.set("view engine", "ejs");
+  app.set("views", path.join(__dirname, "templates"));
+
   app.use(helmet());
   app.use(cors());
   // Larger limit to allow base64-encoded images in JSON bodies (up to ~25MB raw → ~33MB base64).

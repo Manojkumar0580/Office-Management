@@ -1,8 +1,6 @@
-/** Replace `{{key}}` placeholders (non-greedy, one segment per key). */
-export function renderTemplate(template: string, vars: Record<string, string>): string {
-  let out = template;
-  for (const [key, value] of Object.entries(vars)) {
-    out = out.split(`{{${key}}}`).join(value);
-  }
-  return out;
+import ejs from "ejs";
+
+/** Render template using EJS with variables. Supports {{key}} syntax. */
+export function renderTemplate(template: string, vars: Record<string, unknown>): string {
+  return ejs.render(template, vars, { delimiter: "?" });
 }

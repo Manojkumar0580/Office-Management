@@ -94,9 +94,15 @@ function buildAccountApprovedPlainText(input: {
   ];
   if (input.employeeId) lines.push(`Employee ID: ${input.employeeId}`);
   if (input.traineeId) lines.push(`Trainee ID: ${input.traineeId}`);
-  if (!input.employeeId && !input.traineeId && input.humanId) lines.push(`Account ID: ${input.humanId}`);
+  if (!input.employeeId && !input.traineeId && input.humanId)
+    lines.push(`Account ID: ${input.humanId}`);
   const login = process.env.APP_PUBLIC_URL?.trim();
-  lines.push("", login ? `Sign in: ${login.replace(/\/$/, "")}` : "Sign in with your registered email and password.");
+  lines.push(
+    "",
+    login
+      ? `Sign in: ${login.replace(/\/$/, "")}`
+      : "Sign in with your registered email and password.",
+  );
   lines.push("", `— ${name}`);
   return lines.join("\n");
 }

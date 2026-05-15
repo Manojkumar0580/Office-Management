@@ -17,7 +17,12 @@ export function validate(schemas: ValidationSchemas) {
           stripUnknown: true,
         });
         if (error) throw new ApiError(400, "Invalid request body", error.details);
-        req.body = value;
+        Object.defineProperty(req, "body", {
+          value: value,
+          enumerable: true,
+          configurable: true,
+          writable: true,
+        });
       }
 
       if (schemas.query) {
@@ -26,7 +31,12 @@ export function validate(schemas: ValidationSchemas) {
           stripUnknown: true,
         });
         if (error) throw new ApiError(400, "Invalid request query", error.details);
-        req.query = value;
+        Object.defineProperty(req, "query", {
+          value: value,
+          enumerable: true,
+          configurable: true,
+          writable: true,
+        });
       }
 
       if (schemas.params) {
@@ -35,7 +45,12 @@ export function validate(schemas: ValidationSchemas) {
           stripUnknown: true,
         });
         if (error) throw new ApiError(400, "Invalid request params", error.details);
-        req.params = value;
+        Object.defineProperty(req, "params", {
+          value: value,
+          enumerable: true,
+          configurable: true,
+          writable: true,
+        });
       }
 
       next();
