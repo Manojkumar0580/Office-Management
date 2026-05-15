@@ -126,3 +126,18 @@ export async function addCertificateFromBase64(
   const saved = saveBase64Image(input.image);
   return await addCertificate(userId, { name: input.name, filePath: saved.filePath });
 }
+
+export async function setCV(userId: string, filePath: string) {
+  const profile = await getOrCreateProfile(userId);
+  profile.professional = {
+    ...(profile.professional ?? {}),
+    cvPath: filePath,
+  };
+  await profile.save();
+  return profile;
+}
+
+export async function setCVFromBase64(userId: string, image: Base64ImageInput) {
+  const saved = saveBase64Image(image);
+  return await setCV(userId, saved.filePath);
+}

@@ -1,6 +1,7 @@
 import type { NextFunction, Request, Response } from "express";
 import path from "path";
 import { ApiError } from "../utils/apiError";
+import { normalizeUploadRelativePath } from "../utils/uploadUrls";
 import type { WorkStatus } from "../models/WorkItem";
 import {
   addWorkAttachment,
@@ -64,7 +65,9 @@ export async function uploadAttachmentHandler(req: Request, res: Response, next:
   try {
     if (!req.file) throw new ApiError(400, "Missing file");
     const id = Array.isArray(req.params.id) ? req.params.id[0] : req.params.id;
-    const relativePath = path.join("uploads", path.basename(req.file.path));
+    const relativePath = normalizeUploadRelativePath(
+      path.join("uploads", path.basename(req.file.path)),
+    );
     const work = await addWorkAttachment({
       workItemId: id,
       originalName: req.file.originalname,

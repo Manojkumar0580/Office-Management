@@ -10,7 +10,15 @@ export const base64ImageSchema = Joi.alternatives().try(
   Joi.object({
     data: Joi.string().min(20).max(40_000_000).required(),
     mimeType: Joi.string()
-      .valid("image/jpeg", "image/jpg", "image/png", "image/webp", "image/gif", "image/heic")
+      .valid(
+        "image/jpeg",
+        "image/jpg",
+        "image/png",
+        "image/webp",
+        "image/gif",
+        "image/heic",
+        "application/pdf",
+      )
       .optional(),
     originalName: Joi.string().max(255).optional(),
   }),

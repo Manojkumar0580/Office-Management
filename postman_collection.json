@@ -1,7 +1,7 @@
 {
   "info": {
     "name": "Office Management API (v1)",
-    "description": "Office Management API v1.\n\n**Folders:** Health; Auth split into **Bootstrap & register**, **Login & password (OTP)**, **Session (Bearer)**; **Users & platform admin** with **Roles / list / promote** and **Create user (examples)**; Teams; Staff approval; Staff profiles (with **Profile change requests**); Stock split into **Items**, **Movements**, **Maintenance**, **Reports**; Work; Status logs.\n\n**Variables:** `baseUrl`, `token` (Bearer — from login `data.token`), `bootstrapKey`, `staffId`, `userId`, `teamId`, `profileChangeRequestId`, `stockItemId`, `maintenanceId`, `workId`.\n\n**Response shape (success):** `{ \"status\": true, \"statusCode\": <http>, \"message\": \"...\", \"data\": { ... } }` — `data` may be omitted.\n\n**Errors:** `{ \"status\": false, \"statusCode\": <http>, \"message\": \"...\", \"details\": ... }`\n\n**Auth:** Login returns token inside `data`. Forgot password sends a **6-digit OTP** by email; reset password uses `email` + `otp` + `newPassword` (not a link token).",
+    "description": "Office Management API v1.\n\n**Images:** Responses include `url`, `livePhotoUrl`, `cvUrl`. Set server `.env` `APP_PUBLIC_URL={{baseUrl}}`. Use **Verify image URL** request after profile upload.\n\n**Projects:** `tlUserId`, `memberUserIds`, `GET /projects/reports/overview`, `PUT /projects/:id/progress`.\n\n**Variables:** `baseUrl`, `token`, `staffId`, `userId`, `tlUserId`, `teamId`, `projectId`, `imageUrl`, …",
     "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
   },
   "item": [
@@ -1383,6 +1383,290 @@
       ]
     },
     {
+      "name": "Projects",
+      "item": [
+        {
+          "name": "CRUD",
+          "item": [
+            {
+              "name": "Create Project",
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "exec": [
+                      "try {",
+                      "  const j = pm.response.json();",
+                      "  if (j.data && j.data.project && j.data.project._id) {",
+                      "    pm.collectionVariables.set('projectId', j.data.project._id);",
+                      "  }",
+                      "} catch (e) {}"
+                    ],
+                    "type": "text/javascript"
+                  }
+                }
+              ],
+              "request": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  },
+                  {
+                    "key": "Authorization",
+                    "value": "Bearer {{token}}"
+                  }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"name\": \"Wedding catering - June\",\n  \"description\": \"Full-service catering for 200 guests\",\n  \"clientName\": \"Acme Corp\",\n  \"status\": \"ACTIVE\",\n  \"budget\": 500000,\n  \"revenue\": 150000,\n  \"currency\": \"INR\",\n  \"startDate\": \"2026-06-01\",\n  \"endDate\": \"2026-06-15\",\n  \"teamId\": \"{{teamId}}\",\n  \"tlUserId\": \"{{tlUserId}}\",\n  \"managerUserId\": \"{{userId}}\",\n  \"memberUserIds\": [\"{{staffId}}\"]\n}"
+                },
+                "url": {
+                  "raw": "{{baseUrl}}/api/v1/projects",
+                  "host": ["{{baseUrl}}"],
+                  "path": ["api", "v1", "projects"]
+                },
+                "description": "Roles: SUPER_ADMIN, ADMIN, MANAGER, ACCOUNTANT. Auto-generates `code` (e.g. PRJ-0001). Success: `data.project`."
+              }
+            },
+            {
+              "name": "List Projects",
+              "request": {
+                "method": "GET",
+                "header": [
+                  {
+                    "key": "Authorization",
+                    "value": "Bearer {{token}}"
+                  }
+                ],
+                "url": {
+                  "raw": "{{baseUrl}}/api/v1/projects?status=ACTIVE",
+                  "host": ["{{baseUrl}}"],
+                  "path": ["api", "v1", "projects"],
+                  "query": [
+                    {
+                      "key": "status",
+                      "value": "ACTIVE"
+                    },
+                    {
+                      "key": "teamId",
+                      "value": "{{teamId}}",
+                      "disabled": true
+                    },
+                    {
+                      "key": "tlUserId",
+                      "value": "{{tlUserId}}",
+                      "disabled": true
+                    },
+                    {
+                      "key": "managerUserId",
+                      "value": "{{userId}}",
+                      "disabled": true
+                    },
+                    {
+                      "key": "clientName",
+                      "value": "Acme",
+                      "disabled": true
+                    },
+                    {
+                      "key": "from",
+                      "value": "2026-01-01",
+                      "disabled": true
+                    },
+                    {
+                      "key": "to",
+                      "value": "2026-12-31",
+                      "disabled": true
+                    },
+                    {
+                      "key": "includeInactive",
+                      "value": "false",
+                      "disabled": true
+                    }
+                  ]
+                },
+                "description": "Includes `memberCount` and `tlUserId`. TL sees only their projects."
+              }
+            },
+            {
+              "name": "Get Project",
+              "request": {
+                "method": "GET",
+                "header": [
+                  {
+                    "key": "Authorization",
+                    "value": "Bearer {{token}}"
+                  }
+                ],
+                "url": {
+                  "raw": "{{baseUrl}}/api/v1/projects/{{projectId}}",
+                  "host": ["{{baseUrl}}"],
+                  "path": ["api", "v1", "projects", "{{projectId}}"]
+                }
+              }
+            },
+            {
+              "name": "Update Project",
+              "request": {
+                "method": "PUT",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  },
+                  {
+                    "key": "Authorization",
+                    "value": "Bearer {{token}}"
+                  }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"status\": \"ACTIVE\",\n  \"memberUserIds\": [\"{{staffId}}\"],\n  \"tlUserId\": \"{{tlUserId}}\"\n}"
+                },
+                "url": {
+                  "raw": "{{baseUrl}}/api/v1/projects/{{projectId}}",
+                  "host": ["{{baseUrl}}"],
+                  "path": ["api", "v1", "projects", "{{projectId}}"]
+                }
+              }
+            },
+            {
+              "name": "Deactivate Project (soft delete)",
+              "request": {
+                "method": "DELETE",
+                "header": [
+                  {
+                    "key": "Authorization",
+                    "value": "Bearer {{token}}"
+                  }
+                ],
+                "url": {
+                  "raw": "{{baseUrl}}/api/v1/projects/{{projectId}}",
+                  "host": ["{{baseUrl}}"],
+                  "path": ["api", "v1", "projects", "{{projectId}}"]
+                }
+              }
+            }
+          ]
+        },
+        {
+          "name": "Work progress (TL / Admin only)",
+          "item": [
+            {
+              "name": "Get Work Progress",
+              "request": {
+                "method": "GET",
+                "header": [
+                  {
+                    "key": "Authorization",
+                    "value": "Bearer {{token}}"
+                  }
+                ],
+                "url": {
+                  "raw": "{{baseUrl}}/api/v1/projects/{{projectId}}/progress",
+                  "host": ["{{baseUrl}}"],
+                  "path": ["api", "v1", "projects", "{{projectId}}", "progress"]
+                }
+              }
+            },
+            {
+              "name": "Update Work Progress",
+              "request": {
+                "method": "PUT",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  },
+                  {
+                    "key": "Authorization",
+                    "value": "Bearer {{token}}"
+                  }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"percent\": 65,\n  \"note\": \"Menu finalized; prep started for hall A\"\n}"
+                },
+                "url": {
+                  "raw": "{{baseUrl}}/api/v1/projects/{{projectId}}/progress",
+                  "host": ["{{baseUrl}}"],
+                  "path": ["api", "v1", "projects", "{{projectId}}", "progress"]
+                }
+              }
+            }
+          ]
+        },
+        {
+          "name": "Reports",
+          "item": [
+            {
+              "name": "Project Overview (count + progress list)",
+              "request": {
+                "method": "GET",
+                "header": [
+                  {
+                    "key": "Authorization",
+                    "value": "Bearer {{token}}"
+                  }
+                ],
+                "url": {
+                  "raw": "{{baseUrl}}/api/v1/projects/reports/overview?status=ACTIVE",
+                  "host": ["{{baseUrl}}"],
+                  "path": ["api", "v1", "projects", "reports", "overview"],
+                  "query": [
+                    {
+                      "key": "status",
+                      "value": "ACTIVE"
+                    },
+                    {
+                      "key": "from",
+                      "value": "2026-01-01",
+                      "disabled": true
+                    },
+                    {
+                      "key": "to",
+                      "value": "2026-12-31",
+                      "disabled": true
+                    }
+                  ]
+                },
+                "description": "summary + projects list with progressPercent per project"
+              }
+            },
+            {
+              "name": "Project Summary (revenue & totals)",
+              "request": {
+                "method": "GET",
+                "header": [
+                  {
+                    "key": "Authorization",
+                    "value": "Bearer {{token}}"
+                  }
+                ],
+                "url": {
+                  "raw": "{{baseUrl}}/api/v1/projects/reports/summary?from=2026-01-01&to=2026-12-31",
+                  "host": ["{{baseUrl}}"],
+                  "path": ["api", "v1", "projects", "reports", "summary"],
+                  "query": [
+                    {
+                      "key": "from",
+                      "value": "2026-01-01"
+                    },
+                    {
+                      "key": "to",
+                      "value": "2026-12-31"
+                    }
+                  ]
+                },
+                "description": "Dashboard in `data.summary`: totalProjects, totalRevenue, totalBudget, byStatus, etc."
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
       "name": "Status Logs (Audit Trail)",
       "item": [
         {
@@ -1513,6 +1797,33 @@
               ]
             }
           }
+        },
+        {
+          "name": "Status Logs for a Project",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/status-logs?entityType=PROJECT&entityId={{projectId}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "v1", "status-logs"],
+              "query": [
+                {
+                  "key": "entityType",
+                  "value": "PROJECT"
+                },
+                {
+                  "key": "entityId",
+                  "value": "{{projectId}}"
+                }
+              ]
+            }
+          }
         }
       ]
     }
@@ -1556,6 +1867,18 @@
     },
     {
       "key": "workId",
+      "value": ""
+    },
+    {
+      "key": "projectId",
+      "value": ""
+    },
+    {
+      "key": "tlUserId",
+      "value": ""
+    },
+    {
+      "key": "imageUrl",
       "value": ""
     }
   ]

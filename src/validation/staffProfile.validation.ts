@@ -46,6 +46,12 @@ export const staffProfileValidation = {
     }),
   }),
 
+  cvBase64: validate({
+    body: Joi.object({
+      image: base64ImageSchema.required(),
+    }),
+  }),
+
   certificateBase64: validate({
     body: Joi.object({
       name: Joi.string().min(2).required(),

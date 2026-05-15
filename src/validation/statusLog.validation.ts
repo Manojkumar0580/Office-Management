@@ -5,7 +5,14 @@ export const statusLogValidation = {
   list: validate({
     query: Joi.object({
       entityType: Joi.string()
-        .valid("USER", "WORK_ITEM", "STOCK_MAINTENANCE", "PROFILE_CHANGE_REQUEST", "STOCK_MOVEMENT")
+        .valid(
+          "USER",
+          "WORK_ITEM",
+          "STOCK_MAINTENANCE",
+          "PROFILE_CHANGE_REQUEST",
+          "STOCK_MOVEMENT",
+          "PROJECT",
+        )
         .optional(),
       entityId: Joi.string().optional(),
       changedByUserId: Joi.string().optional(),

@@ -2,7 +2,7 @@
   "info": {
     "_postman_id": "6176349f-8b5a-4394-ab79-a0b8b44aa746",
     "name": "Office Management API (v1)",
-    "description": "Office Management API v1.\n\n**Folders:** Health; Auth split into **Bootstrap & register**, **Login & password (OTP)**, **Session (Bearer)**; **Users & platform admin** with **Roles / list / promote** and **Create user (examples)**; Teams; Staff approval; Staff profiles (with **Profile change requests**); Stock split into **Items**, **Movements**, **Maintenance**, **Reports**; Work; Status logs.\n\n**Variables:** `baseUrl`, `token` (Bearer — from login `data.token`), `bootstrapKey`, `staffId`, `userId`, `teamId`, `profileChangeRequestId`, `stockItemId`, `maintenanceId`, `workId`.\n\n**Response shape (success):** `{ \"status\": true, \"statusCode\": <http>, \"message\": \"...\", \"data\": { ... } }` — `data` may be omitted.\n\n**Errors:** `{ \"status\": false, \"statusCode\": <http>, \"message\": \"...\", \"details\": ... }`\n\n**Auth:** Login returns token inside `data`. Forgot password sends a **6-digit OTP** by email; reset password uses `email` + `otp` + `newPassword` (not a link token).",
+    "description": "Office Management API v1.\n\n**Folders:** Health; Auth; Users & teams; Staff approval & profiles; Stock; Work; **Projects** (CRUD, TL/members, progress, **overview dashboard**); Status logs.\n\n**Variables:** `baseUrl` (API root — must match server `PORT` and `.env` `APP_PUBLIC_URL` for images), `token`, `bootstrapKey`, `staffId`, `userId`, `tlUserId`, `teamId`, `projectId`, `stockItemId`, `workId`, `imageUrl`, …\n\n**Images:** Uploads return `filePath` plus absolute **`url`** / **`livePhotoUrl`** / **`cvUrl`**. Open those URLs in a browser, or set server `.env`: `APP_PUBLIC_URL={{baseUrl}}`. Static files: `GET {{baseUrl}}/uploads/<filename>`.\n\n**Projects:** `tlUserId` = lead TL; `memberUserIds` = workers; `GET /projects/reports/overview` = count + progress list; progress update `PUT /projects/:id/progress` (TL/Admin only).\n\n**Success body:** `{ \"status\": true, \"statusCode\": 200, \"message\": \"...\", \"data\": { } }`",
     "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
     "_exporter_id": "27374093",
     "_collection_link": "https://go.postman.co/collection/27374093-6176349f-8b5a-4394-ab79-a0b8b44aa746?source=collection_link"
@@ -217,6 +217,24 @@
         },
         {
           "name": "Me",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "try {",
+                  "  const j = pm.response.json();",
+                  "  const u = j.data && j.data.user;",
+                  "  if (u && u._id) {",
+                  "    pm.collectionVariables.set('userId', u._id);",
+                  "    if (u.role === 'TL' || u.role === 'CAPTAIN') pm.collectionVariables.set('tlUserId', u._id);",
+                  "  }",
+                  "} catch (e) {}"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
           "request": {
             "method": "GET",
             "header": [
@@ -230,7 +248,7 @@
               "host": ["{{baseUrl}}"],
               "path": ["api", "v1", "me"]
             },
-            "description": "Success payload: `data.user`."
+            "description": "Success: `data.user`. Test script saves `userId`; if role is TL/CAPTAIN also sets `tlUserId`."
           },
           "response": []
         },
@@ -318,6 +336,51 @@
                   ]
                 },
                 "description": "Success: `data.users`."
+              },
+              "response": []
+            },
+            {
+              "name": "List TL users (set tlUserId)",
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "exec": [
+                      "try {",
+                      "  const j = pm.response.json();",
+                      "  const users = (j.data && j.data.users) || [];",
+                      "  const tl = users.find((u) => u.role === 'TL' || u.role === 'CAPTAIN');",
+                      "  if (tl && tl._id) pm.collectionVariables.set('tlUserId', tl._id);",
+                      "} catch (e) {}"
+                    ],
+                    "type": "text/javascript"
+                  }
+                }
+              ],
+              "request": {
+                "method": "GET",
+                "header": [
+                  {
+                    "key": "Authorization",
+                    "value": "Bearer {{token}}"
+                  }
+                ],
+                "url": {
+                  "raw": "{{baseUrl}}/api/v1/users?role=TL&status=ACTIVE",
+                  "host": ["{{baseUrl}}"],
+                  "path": ["api", "v1", "users"],
+                  "query": [
+                    {
+                      "key": "role",
+                      "value": "TL"
+                    },
+                    {
+                      "key": "status",
+                      "value": "ACTIVE"
+                    }
+                  ]
+                },
+                "description": "Use before Create Project. Saves first TL/CAPTAIN `_id` to `{{tlUserId}}`."
               },
               "response": []
             },
@@ -544,6 +607,20 @@
       "item": [
         {
           "name": "Create Team",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "try {",
+                  "  const j = pm.response.json();",
+                  "  if (j.data && j.data.team && j.data.team._id) pm.collectionVariables.set('teamId', j.data.team._id);",
+                  "} catch (e) {}"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
           "request": {
             "method": "POST",
             "header": [
@@ -752,6 +829,24 @@
           "item": [
             {
               "name": "Get Staff Profile",
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "exec": [
+                      "try {",
+                      "  const j = pm.response.json();",
+                      "  const p = j.data && j.data.profile;",
+                      "  if (p && p.livePhotoUrl) pm.collectionVariables.set('imageUrl', p.livePhotoUrl);",
+                      "  else if (p && p.livePhotoPath) pm.collectionVariables.set('imageUrl', pm.variables.get('baseUrl') + '/' + p.livePhotoPath.replace(/\\\\/g, '/'));",
+                      "  const cert = p && p.professional && p.professional.certificates && p.professional.certificates[0];",
+                      "  if (cert && cert.url) pm.collectionVariables.set('imageUrl', cert.url);",
+                      "} catch (e) {}"
+                    ],
+                    "type": "text/javascript"
+                  }
+                }
+              ],
               "request": {
                 "method": "GET",
                 "header": [
@@ -764,7 +859,8 @@
                   "raw": "{{baseUrl}}/api/v1/staff/{{staffId}}/profile",
                   "host": ["{{baseUrl}}"],
                   "path": ["api", "v1", "staff", "{{staffId}}", "profile"]
-                }
+                },
+                "description": "Response includes `livePhotoUrl`, certificate `url`, `cvUrl`. Test script sets `{{imageUrl}}` for the verify request below."
               },
               "response": []
             },
@@ -818,7 +914,8 @@
                   "raw": "{{baseUrl}}/api/v1/staff/{{staffId}}/photo",
                   "host": ["{{baseUrl}}"],
                   "path": ["api", "v1", "staff", "{{staffId}}", "photo"]
-                }
+                },
+                "description": "Multipart field `photo`. Response: `data.profile.livePhotoUrl` — use in `<img>` or open in browser."
               },
               "response": []
             },
@@ -844,6 +941,62 @@
                   "raw": "{{baseUrl}}/api/v1/staff/{{staffId}}/photo/base64",
                   "host": ["{{baseUrl}}"],
                   "path": ["api", "v1", "staff", "{{staffId}}", "photo", "base64"]
+                },
+                "description": "Body: `{ \"image\": \"data:image/png;base64,...\" }`. Returns `livePhotoUrl`."
+              },
+              "response": []
+            },
+            {
+              "name": "Upload CV (multipart)",
+              "request": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Authorization",
+                    "value": "Bearer {{token}}"
+                  }
+                ],
+                "body": {
+                  "mode": "formdata",
+                  "formdata": [
+                    {
+                      "key": "cv",
+                      "type": "file",
+                      "value": ""
+                    }
+                  ]
+                },
+                "url": {
+                  "raw": "{{baseUrl}}/api/v1/staff/{{staffId}}/cv",
+                  "host": ["{{baseUrl}}"],
+                  "path": ["api", "v1", "staff", "{{staffId}}", "cv"]
+                },
+                "description": "Multipart field `cv` (PDF or image). Response: `data.profile.cvUrl`."
+              },
+              "response": []
+            },
+            {
+              "name": "Upload CV (base64 JSON)",
+              "request": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  },
+                  {
+                    "key": "Authorization",
+                    "value": "Bearer {{token}}"
+                  }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"image\": \"data:application/pdf;base64,JVBERi0xLjQKJeLjz9MKMyAwIG9iago8PC9MZW5ndGggNCAwIFIvRmlsdGVyL0ZsYXRlRGVjb2RlPj4+CnN0cmVhbQp4nDPQM1Qo5ypUMFAwNABaGwYJCmVuZHN0cmVhbQplbmRvYmoKNCAwIG9iago8PC9UeXBlL1hPYmplY3QvU3VidHlwZS9JbWFnZS9XaWR0aCAxL0hlaWdodCAxL0NvbG9yU3BhY2UvRGV2aWNlR3JheT4+CnN0cmVhbQp4nDPQM1Qo5ypUMFAwNABaGwYJCmVuZHN0cmVhbQplbmRvYmoKNSAwIG9iago8PC9UeXBlL1hPYmplY3QvU3VidHlwZS9Gb3JtL0ZpbHRlci9GbGF0ZURlY29kZS9CQ1sKNSAwIFJdPj4KZW5kb2JqCjYgMCBvYmoKPDwvVHlwZS9YT2JqZWN0L1N1YnR5cGUvRm9ybS9CQ1s1IDAgUl0vRm9ybVR5cGUgMT4+CmVuZG9iagp4cmVmCjAgNwowMDAwMDAwMDAwIDY1NTM1IGYgCjAwMDAwMDAwMTUgMDAwMDAgbiAKMDAwMDAwMDA2NCAwMDAwMCBuIAowMDAwMDAwMTIxIDAwMDAwIG4gCjAwMDAwMDAyNzggMDAwMDAgbiAKMDAwMDAwMDM3NSAwMDAwMCBuIAowMDAwMDAwNDU2IDAwMDAwIG4gCnRyYWlsZXIKPDwvU2l6ZSA3L1Jvb3QgMSAwIFI+PgpzdGFydHhyZWYKNTM3CiUlRU9GCg==\"\n}"
+                },
+                "url": {
+                  "raw": "{{baseUrl}}/api/v1/staff/{{staffId}}/cv/base64",
+                  "host": ["{{baseUrl}}"],
+                  "path": ["api", "v1", "staff", "{{staffId}}", "cv", "base64"]
                 }
               },
               "response": []
@@ -904,6 +1057,19 @@
                   "host": ["{{baseUrl}}"],
                   "path": ["api", "v1", "staff", "{{staffId}}", "documents", "base64"]
                 }
+              },
+              "response": []
+            },
+            {
+              "name": "Verify image URL (browser)",
+              "request": {
+                "method": "GET",
+                "header": [],
+                "url": {
+                  "raw": "{{imageUrl}}",
+                  "host": ["{{imageUrl}}"]
+                },
+                "description": "Run after Get Staff Profile or any upload. Paste `livePhotoUrl` into collection var `imageUrl`, or use test script. Should return image bytes (200)."
               },
               "response": []
             }
@@ -1018,7 +1184,8 @@
                   "raw": "{{baseUrl}}/api/v1/stock/items",
                   "host": ["{{baseUrl}}"],
                   "path": ["api", "v1", "stock", "items"]
-                }
+                },
+                "description": "Each item `images[]` entry includes `filePath` and `url` for display."
               },
               "response": []
             },
@@ -1441,6 +1608,316 @@
       ]
     },
     {
+      "name": "Projects",
+      "item": [
+        {
+          "name": "CRUD",
+          "item": [
+            {
+              "name": "Create Project",
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "exec": [
+                      "try {",
+                      "  const j = pm.response.json();",
+                      "  if (j.data && j.data.project && j.data.project._id) {",
+                      "    pm.collectionVariables.set('projectId', j.data.project._id);",
+                      "  }",
+                      "  const tl = j.data && j.data.project && j.data.project.tlUserId;",
+                      "  if (tl) pm.collectionVariables.set('tlUserId', typeof tl === 'string' ? tl : (tl._id || tl));",
+                      "} catch (e) {}"
+                    ],
+                    "type": "text/javascript"
+                  }
+                }
+              ],
+              "request": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  },
+                  {
+                    "key": "Authorization",
+                    "value": "Bearer {{token}}"
+                  }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"name\": \"Wedding catering - June\",\n  \"description\": \"Full-service catering for 200 guests\",\n  \"clientName\": \"Acme Corp\",\n  \"status\": \"ACTIVE\",\n  \"budget\": 500000,\n  \"revenue\": 150000,\n  \"currency\": \"INR\",\n  \"startDate\": \"2026-06-01\",\n  \"endDate\": \"2026-06-15\",\n  \"teamId\": \"{{teamId}}\",\n  \"tlUserId\": \"{{tlUserId}}\",\n  \"managerUserId\": \"{{userId}}\",\n  \"memberUserIds\": [\"{{staffId}}\"]\n}"
+                },
+                "url": {
+                  "raw": "{{baseUrl}}/api/v1/projects",
+                  "host": ["{{baseUrl}}"],
+                  "path": ["api", "v1", "projects"]
+                },
+                "description": "Roles: SUPER_ADMIN, ADMIN, MANAGER, ACCOUNTANT. `tlUserId` = project TL/CAPTAIN lead. `memberUserIds` = staff working on project. Response includes `memberCount`; `workProgress` only for TL lead or Admin."
+              },
+              "response": []
+            },
+            {
+              "name": "List Projects",
+              "request": {
+                "method": "GET",
+                "header": [
+                  {
+                    "key": "Authorization",
+                    "value": "Bearer {{token}}"
+                  }
+                ],
+                "url": {
+                  "raw": "{{baseUrl}}/api/v1/projects?status=ACTIVE",
+                  "host": ["{{baseUrl}}"],
+                  "path": ["api", "v1", "projects"],
+                  "query": [
+                    {
+                      "key": "status",
+                      "value": "ACTIVE",
+                      "description": "PLANNED | ACTIVE | ON_HOLD | COMPLETED | CANCELLED"
+                    },
+                    {
+                      "key": "teamId",
+                      "value": "{{teamId}}",
+                      "disabled": true
+                    },
+                    {
+                      "key": "tlUserId",
+                      "value": "{{tlUserId}}",
+                      "disabled": true,
+                      "description": "Admin filter; TL users auto-see only their projects"
+                    },
+                    {
+                      "key": "managerUserId",
+                      "value": "{{userId}}",
+                      "disabled": true
+                    },
+                    {
+                      "key": "clientName",
+                      "value": "Acme",
+                      "disabled": true
+                    },
+                    {
+                      "key": "from",
+                      "value": "2026-01-01",
+                      "disabled": true
+                    },
+                    {
+                      "key": "to",
+                      "value": "2026-12-31",
+                      "disabled": true
+                    },
+                    {
+                      "key": "includeInactive",
+                      "value": "false",
+                      "disabled": true
+                    }
+                  ]
+                },
+                "description": "Each project includes `tlUserId`, populated `memberUserIds`, and `memberCount`. TL login: list is scoped to projects where you are the lead."
+              },
+              "response": []
+            },
+            {
+              "name": "Get Project",
+              "request": {
+                "method": "GET",
+                "header": [
+                  {
+                    "key": "Authorization",
+                    "value": "Bearer {{token}}"
+                  }
+                ],
+                "url": {
+                  "raw": "{{baseUrl}}/api/v1/projects/{{projectId}}",
+                  "host": ["{{baseUrl}}"],
+                  "path": ["api", "v1", "projects", "{{projectId}}"]
+                },
+                "description": "Success: `data.project`."
+              },
+              "response": []
+            },
+            {
+              "name": "Update Project",
+              "request": {
+                "method": "PUT",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  },
+                  {
+                    "key": "Authorization",
+                    "value": "Bearer {{token}}"
+                  }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"status\": \"ACTIVE\",\n  \"memberUserIds\": [\"{{staffId}}\"],\n  \"tlUserId\": \"{{tlUserId}}\"\n}"
+                },
+                "url": {
+                  "raw": "{{baseUrl}}/api/v1/projects/{{projectId}}",
+                  "host": ["{{baseUrl}}"],
+                  "path": ["api", "v1", "projects", "{{projectId}}"]
+                },
+                "description": "Assign/replace team: `memberUserIds`. Change lead: `tlUserId`. Members/TL: Admin, Manager, or project's TL only."
+              },
+              "response": []
+            },
+            {
+              "name": "Deactivate Project (soft delete)",
+              "request": {
+                "method": "DELETE",
+                "header": [
+                  {
+                    "key": "Authorization",
+                    "value": "Bearer {{token}}"
+                  }
+                ],
+                "url": {
+                  "raw": "{{baseUrl}}/api/v1/projects/{{projectId}}",
+                  "host": ["{{baseUrl}}"],
+                  "path": ["api", "v1", "projects", "{{projectId}}"]
+                },
+                "description": "Roles: SUPER_ADMIN, ADMIN, MANAGER. Sets `isActive: false` and status `CANCELLED`."
+              },
+              "response": []
+            }
+          ]
+        },
+        {
+          "name": "Work progress (TL / Admin only)",
+          "item": [
+            {
+              "name": "Get Work Progress",
+              "request": {
+                "method": "GET",
+                "header": [
+                  {
+                    "key": "Authorization",
+                    "value": "Bearer {{token}}"
+                  }
+                ],
+                "url": {
+                  "raw": "{{baseUrl}}/api/v1/projects/{{projectId}}/progress",
+                  "host": ["{{baseUrl}}"],
+                  "path": ["api", "v1", "projects", "{{projectId}}", "progress"]
+                },
+                "description": "Only SUPER_ADMIN, ADMIN, or the project's assigned TL/CAPTAIN (`tlUserId`). Returns `workProgress` (percent 0–100, note, updatedAt)."
+              },
+              "response": []
+            },
+            {
+              "name": "Update Work Progress",
+              "request": {
+                "method": "PUT",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  },
+                  {
+                    "key": "Authorization",
+                    "value": "Bearer {{token}}"
+                  }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"percent\": 65,\n  \"note\": \"Menu finalized; prep started for hall A\"\n}"
+                },
+                "url": {
+                  "raw": "{{baseUrl}}/api/v1/projects/{{projectId}}/progress",
+                  "host": ["{{baseUrl}}"],
+                  "path": ["api", "v1", "projects", "{{projectId}}", "progress"]
+                },
+                "description": "Same access as GET progress. TL updates their project; Admin any project."
+              },
+              "response": []
+            }
+          ]
+        },
+        {
+          "name": "Reports",
+          "item": [
+            {
+              "name": "Project Overview (count + progress list)",
+              "request": {
+                "method": "GET",
+                "header": [
+                  {
+                    "key": "Authorization",
+                    "value": "Bearer {{token}}"
+                  }
+                ],
+                "url": {
+                  "raw": "{{baseUrl}}/api/v1/projects/reports/overview?status=ACTIVE",
+                  "host": ["{{baseUrl}}"],
+                  "path": ["api", "v1", "projects", "reports", "overview"],
+                  "query": [
+                    {
+                      "key": "status",
+                      "value": "ACTIVE",
+                      "description": "Optional filter"
+                    },
+                    {
+                      "key": "from",
+                      "value": "2026-01-01",
+                      "disabled": true
+                    },
+                    {
+                      "key": "to",
+                      "value": "2026-12-31",
+                      "disabled": true
+                    },
+                    {
+                      "key": "tlUserId",
+                      "value": "{{tlUserId}}",
+                      "disabled": true
+                    }
+                  ]
+                },
+                "description": "Main dashboard: `data.overview.summary` (totalProjects, averageProgressPercent, revenue, …) + `data.overview.projects[]` (each with progressPercent, TL, memberCount). Admin/Manager: all projects + progress. TL: own projects + progress."
+              },
+              "response": []
+            },
+            {
+              "name": "Project Summary (revenue & totals)",
+              "request": {
+                "method": "GET",
+                "header": [
+                  {
+                    "key": "Authorization",
+                    "value": "Bearer {{token}}"
+                  }
+                ],
+                "url": {
+                  "raw": "{{baseUrl}}/api/v1/projects/reports/summary?from=2026-01-01&to=2026-12-31",
+                  "host": ["{{baseUrl}}"],
+                  "path": ["api", "v1", "projects", "reports", "summary"],
+                  "query": [
+                    {
+                      "key": "from",
+                      "value": "2026-01-01",
+                      "description": "Optional ISO date — filter by project createdAt"
+                    },
+                    {
+                      "key": "to",
+                      "value": "2026-12-31",
+                      "description": "Optional ISO date"
+                    }
+                  ]
+                },
+                "description": "Dashboard in `data.summary`: revenue, project counts, `totalMembers`, `averageMembersPerProject`, `byStatus`. TL login: summary scoped to their projects only."
+              },
+              "response": []
+            }
+          ]
+        }
+      ]
+    },
+    {
       "name": "Status Logs (Audit Trail)",
       "item": [
         {
@@ -1575,6 +2052,34 @@
             }
           },
           "response": []
+        },
+        {
+          "name": "Status Logs for a Project",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/status-logs?entityType=PROJECT&entityId={{projectId}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "v1", "status-logs"],
+              "query": [
+                {
+                  "key": "entityType",
+                  "value": "PROJECT"
+                },
+                {
+                  "key": "entityId",
+                  "value": "{{projectId}}"
+                }
+              ]
+            }
+          },
+          "response": []
         }
       ]
     }
@@ -1582,7 +2087,8 @@
   "variable": [
     {
       "key": "baseUrl",
-      "value": "http://localhost:3002"
+      "value": "http://localhost:3002",
+      "description": "API server URL. Set APP_PUBLIC_URL in .env to the same value so image URLs work."
     },
     {
       "key": "token",
@@ -1619,6 +2125,20 @@
     {
       "key": "workId",
       "value": ""
+    },
+    {
+      "key": "projectId",
+      "value": ""
+    },
+    {
+      "key": "tlUserId",
+      "value": "",
+      "description": "ObjectId of TL/CAPTAIN — use List TL users or Me (when logged in as TL)"
+    },
+    {
+      "key": "imageUrl",
+      "value": "",
+      "description": "Absolute URL from livePhotoUrl / certificate url — for Verify image request"
     }
   ]
 }

@@ -1,6 +1,7 @@
 import type { NextFunction, Request, Response } from "express";
 import path from "path";
 import { ApiError } from "../utils/apiError";
+import { normalizeUploadRelativePath } from "../utils/uploadUrls";
 import {
   addCertificate,
   addCertificateFromBase64,
@@ -8,6 +9,8 @@ import {
   reviewProfileUpdate,
   setLivePhoto,
   setLivePhotoFromBase64,
+  setCV,
+  setCVFromBase64,
 } from "../services/staffProfileService";
 import { StaffProfileModel } from "../models/StaffProfile";
 import { ProfileChangeRequestModel } from "../models/ProfileChangeRequest";
@@ -79,7 +82,9 @@ export async function uploadLivePhoto(req: Request, res: Response, next: NextFun
   try {
     if (!req.file) throw new ApiError(400, "Missing file");
     const userId = Array.isArray(req.params.id) ? req.params.id[0] : req.params.id;
-    const relativePath = path.join("uploads", path.basename(req.file.path));
+    const relativePath = normalizeUploadRelativePath(
+      path.join("uploads", path.basename(req.file.path)),
+    );
     const profile = await setLivePhoto(userId, relativePath);
     sendSuccess(res, 200, "Live photo updated successfully.", { profile });
   } catch (err) {
@@ -91,7 +96,9 @@ export async function uploadCertificate(req: Request, res: Response, next: NextF
   try {
     if (!req.file) throw new ApiError(400, "Missing file");
     const userId = Array.isArray(req.params.id) ? req.params.id[0] : req.params.id;
-    const relativePath = path.join("uploads", path.basename(req.file.path));
+    const relativePath = normalizeUploadRelativePath(
+      path.join("uploads", path.basename(req.file.path)),
+    );
     const profile = await addCertificate(userId, { name: req.body.name, filePath: relativePath });
     sendSuccess(res, 200, "Document uploaded successfully.", { profile });
   } catch (err) {
@@ -122,10 +129,35 @@ export async function uploadCertificateBase64(req: Request, res: Response, next:
   }
 }
 
+export async function uploadCV(req: Request, res: Response, next: NextFunction) {
+  try {
+    if (!req.file) throw new ApiError(400, "Missing file");
+    const userId = Array.isArray(req.params.id) ? req.params.id[0] : req.params.id;
+    const relativePath = normalizeUploadRelativePath(
+      path.join("uploads", path.basename(req.file.path)),
+    );
+    const profile = await setCV(userId, relativePath);
+    sendSuccess(res, 200, "CV uploaded successfully.", { profile });
+  } catch (err) {
+    next(err);
+  }
+}
+
+export async function uploadCVBase64(req: Request, res: Response, next: NextFunction) {
+  try {
+    const userId = Array.isArray(req.params.id) ? req.params.id[0] : req.params.id;
+    const profile = await setCVFromBase64(userId, req.body.image);
+    sendSuccess(res, 200, "CV uploaded successfully.", { profile });
+  } catch (err) {
+    next(err);
+  }
+}
+
 // Re-export request validators for routes
 export const staffIdParamsSchema = staffProfileValidation.staffIdParams;
 export const profileUpdateSchema = staffProfileValidation.profileUpdate;
 export const reviewSchema = staffProfileValidation.reviewRequest;
 export const certificateSchema = staffProfileValidation.certificate;
 export const livePhotoBase64Schema = staffProfileValidation.livePhotoBase64;
+export const cvBase64Schema = staffProfileValidation.cvBase64;
 export const certificateBase64Schema = staffProfileValidation.certificateBase64;

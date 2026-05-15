@@ -15,7 +15,12 @@ export function createApp() {
   app.set("view engine", "ejs");
   app.set("views", path.join(__dirname, "templates"));
 
-  app.use(helmet());
+  app.use(
+    helmet({
+      // Allow <img src="https://api.example.com/uploads/..."> from a separate frontend origin.
+      crossOriginResourcePolicy: { policy: "cross-origin" },
+    }),
+  );
   app.use(cors());
   // Larger limit to allow base64-encoded images in JSON bodies (up to ~25MB raw → ~33MB base64).
   app.use(express.json({ limit: "50mb" }));
@@ -33,7 +38,15 @@ export function createApp() {
   // Static serving of uploaded files (images, certificates, etc.)
   const uploadRoot = path.join(process.cwd(), "uploads");
   ensureDir(uploadRoot);
-  app.use("/uploads", express.static(uploadRoot));
+  app.use(
+    "/uploads",
+    (_req, res, next) => {
+      res.setHeader("Cross-Origin-Resource-Policy", "cross-origin");
+      res.setHeader("Cache-Control", "public, max-age=86400");
+      next();
+    },
+    express.static(uploadRoot, { fallthrough: true }),
+  );
 
   app.use("/api/v1", v1Router);
 

@@ -42,6 +42,9 @@ import {
   uploadCertificateBase64,
   uploadLivePhoto,
   uploadLivePhotoBase64,
+  uploadCV,
+  uploadCVBase64,
+  cvBase64Schema,
 } from "../../controllers/staffProfileController";
 import { listLogsHandler, statusLogListSchema } from "../../controllers/statusLogController";
 import {
@@ -98,9 +101,33 @@ import {
   updateTeamHandler,
   updateTeamSchema,
 } from "../../controllers/teamController";
+import {
+  createProjectHandler,
+  createProjectSchema,
+  deleteProjectHandler,
+  getProjectHandler,
+  getProjectProgressHandler,
+  listProjectsHandler,
+  listProjectsSchema,
+  projectIdParamsSchema,
+  projectOverviewHandler,
+  projectOverviewSchema,
+  projectSummaryHandler,
+  projectSummarySchema,
+  updateProjectHandler,
+  updateProjectSchema,
+  updateProjectProgressHandler,
+  updateProgressSchema,
+} from "../../controllers/projectController";
 import { CANDIDATE_REVIEWER_ROLES, USER_CREATOR_ROLES } from "../../utils/roleHierarchy";
+import { enrichUploadUrlsMiddleware } from "../../middleware/enrichUploadUrls";
 
 export const v1Router = Router();
+
+v1Router.use(enrichUploadUrlsMiddleware);
+
+const PROJECT_WRITE_ROLES = ["SUPER_ADMIN", "ADMIN", "MANAGER", "ACCOUNTANT"] as const;
+const PROJECT_VIEW_ROLES = [...PROJECT_WRITE_ROLES, "HR", "TL", "CAPTAIN"] as const;
 
 v1Router.get("/health", (_req, res) => {
   res.json({
@@ -217,6 +244,20 @@ v1Router.post(
   staffProfileStaffIdParamsSchema,
   livePhotoBase64Schema,
   uploadLivePhotoBase64,
+);
+v1Router.post(
+  "/staff/:id/cv",
+  requireAuth,
+  staffProfileStaffIdParamsSchema,
+  upload.single("cv"),
+  uploadCV,
+);
+v1Router.post(
+  "/staff/:id/cv/base64",
+  requireAuth,
+  staffProfileStaffIdParamsSchema,
+  cvBase64Schema,
+  uploadCVBase64,
 );
 v1Router.post(
   "/staff/:id/documents",
@@ -366,6 +407,73 @@ v1Router.get(
   requireRoles([...WORK_REVIEWER_ROLES, "HR"]),
   dailySchema,
   dailyReportHandler,
+);
+
+// ----- Projects -----
+v1Router.post(
+  "/projects",
+  requireAuth,
+  requireRoles([...PROJECT_WRITE_ROLES]),
+  createProjectSchema,
+  createProjectHandler,
+);
+v1Router.get(
+  "/projects",
+  requireAuth,
+  requireRoles([...PROJECT_VIEW_ROLES]),
+  listProjectsSchema,
+  listProjectsHandler,
+);
+v1Router.get(
+  "/projects/reports/summary",
+  requireAuth,
+  requireRoles([...PROJECT_VIEW_ROLES]),
+  projectSummarySchema,
+  projectSummaryHandler,
+);
+v1Router.get(
+  "/projects/reports/overview",
+  requireAuth,
+  requireRoles([...PROJECT_VIEW_ROLES]),
+  projectOverviewSchema,
+  projectOverviewHandler,
+);
+v1Router.get(
+  "/projects/:id/progress",
+  requireAuth,
+  requireRoles(["SUPER_ADMIN", "ADMIN", "TL", "CAPTAIN"]),
+  projectIdParamsSchema,
+  getProjectProgressHandler,
+);
+v1Router.put(
+  "/projects/:id/progress",
+  requireAuth,
+  requireRoles(["SUPER_ADMIN", "ADMIN", "TL", "CAPTAIN"]),
+  projectIdParamsSchema,
+  updateProgressSchema,
+  updateProjectProgressHandler,
+);
+v1Router.get(
+  "/projects/:id",
+  requireAuth,
+  requireRoles([...PROJECT_VIEW_ROLES]),
+  projectIdParamsSchema,
+  getProjectHandler,
+);
+v1Router.put(
+  "/projects/:id",
+  requireAuth,
+  requireRoles([...PROJECT_WRITE_ROLES]),
+  projectIdParamsSchema,
+  updateProjectSchema,
+  updateProjectHandler,
+);
+v1Router.delete(
+  "/projects/:id",
+  requireAuth,
+  requireRoles(["SUPER_ADMIN", "ADMIN", "MANAGER"]),
+  projectIdParamsSchema,
+  deleteProjectHandler,
 );
 
 // ----- Status logs (audit trail) -----

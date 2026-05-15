@@ -3,6 +3,7 @@ import fs from "fs";
 import crypto from "crypto";
 import { ApiError } from "./apiError";
 import { ensureDir } from "./files";
+import { normalizeUploadRelativePath } from "./uploadUrls";
 
 const uploadRoot = path.join(process.cwd(), "uploads");
 ensureDir(uploadRoot);
@@ -16,6 +17,7 @@ const ALLOWED_MIME_TO_EXT: Record<string, string> = {
   "image/webp": ".webp",
   "image/gif": ".gif",
   "image/heic": ".heic",
+  "application/pdf": ".pdf",
 };
 
 export type Base64ImageInput =
@@ -78,7 +80,7 @@ export function saveBase64Image(input: Base64ImageInput): SavedImage {
 
   const detectedMime = mimeType ?? detectMimeFromBuffer(buffer);
   if (!detectedMime || !ALLOWED_MIME_TO_EXT[detectedMime]) {
-    throw new ApiError(415, "Unsupported image format. Allowed: jpeg, png, webp, gif, heic");
+    throw new ApiError(415, "Unsupported format. Allowed: jpeg, png, webp, gif, heic, pdf");
   }
 
   const ext = ALLOWED_MIME_TO_EXT[detectedMime];
@@ -86,7 +88,7 @@ export function saveBase64Image(input: Base64ImageInput): SavedImage {
   const absolutePath = path.join(uploadRoot, fileName);
   fs.writeFileSync(absolutePath, buffer);
 
-  const relativePath = path.posix.join("uploads", fileName);
+  const relativePath = normalizeUploadRelativePath(path.posix.join("uploads", fileName));
 
   return {
     originalName: originalName ?? fileName,
@@ -136,6 +138,11 @@ function detectMimeFromBuffer(buf: Buffer): string | undefined {
     buf.slice(8, 12).toString("ascii") === "WEBP"
   ) {
     return "image/webp";
+  }
+
+  // PDF: %PDF-
+  if (buf[0] === 0x25 && buf[1] === 0x50 && buf[2] === 0x44 && buf[3] === 0x46 && buf[4] === 0x2d) {
+    return "application/pdf";
   }
 
   // HEIC: "ftypheic" / "ftypheix" / "ftyphevc" at offset 4

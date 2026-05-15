@@ -5,7 +5,8 @@ export type StatusEntityType =
   | "WORK_ITEM"
   | "STOCK_MAINTENANCE"
   | "PROFILE_CHANGE_REQUEST"
-  | "STOCK_MOVEMENT";
+  | "STOCK_MOVEMENT"
+  | "PROJECT";
 
 const statusLogSchema = new mongoose.Schema(
   {
@@ -18,6 +19,7 @@ const statusLogSchema = new mongoose.Schema(
         "STOCK_MAINTENANCE",
         "PROFILE_CHANGE_REQUEST",
         "STOCK_MOVEMENT",
+        "PROJECT",
       ] satisfies StatusEntityType[],
       index: true,
     },

@@ -18,6 +18,7 @@ const staffProfileSchema = new mongoose.Schema(
     professional: {
       qualification: { type: String, required: false },
       experienceSummary: { type: String, required: false },
+      cvPath: { type: String, required: false },
       certificates: [
         {
           name: { type: String, required: true },
